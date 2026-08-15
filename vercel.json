@@ -1,5 +1,6 @@
 {
-  "buildCommand": "cd client && npm install && npm run build",
+  "installCommand": "npm install --no-package-lock",
+  "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
   "framework": "vite",
   "rewrites": [
