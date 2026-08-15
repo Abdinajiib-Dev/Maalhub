@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: maalhub-backend
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Add other environment variables here like SUPABASE_URL, etc.
+      # - key: PORT
+      #   value: 10000
