@@ -1,4 +1,5 @@
 {
+  "regions": ["fra1"],
   "installCommand": "npm install --no-package-lock",
   "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
