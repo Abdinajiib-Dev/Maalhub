@@ -1,5 +1,6 @@
 {
   "name": "maalhub-monorepo",
+  "type": "module",
   "private": true,
   "workspaces": [
     "client",
