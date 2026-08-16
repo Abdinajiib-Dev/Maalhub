@@ -65,7 +65,7 @@ app.use('/api', (req, res) => {
 });
 
 // SPA Fallback for non-API routes (serves frontend on single port)
-app.get('*', (req, res, next) => {
+app.get(/(.*)/, (req, res, next) => {
   if (req.path.startsWith('/api')) return next();
   res.sendFile(path.join(clientDistPath, 'index.html'));
 });
