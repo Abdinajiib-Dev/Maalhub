@@ -49,6 +49,11 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'MaalHub API is running' });
 });
 
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ error: 'API endpoint not found' });
+});
+
 // Error handling
 app.use(errorHandler);
 
