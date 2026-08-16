@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 /**
  * Helper function to safely parse API response and handle non-JSON / HTML error responses
