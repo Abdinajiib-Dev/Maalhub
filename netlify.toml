@@ -1,0 +1,14 @@
+[build]
+  # Tell Netlify that the frontend code is in the 'client' folder
+  base = "client"
+  # The command to build the Vite app
+  command = "npm run build"
+  # Vite outputs the build to the 'dist' folder
+  publish = "dist"
+
+# Handle React Router (SPA) client-side routing
+# This ensures that if someone visits /about directly, it loads the React app instead of a 404
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
