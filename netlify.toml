@@ -1,8 +1,8 @@
 [build]
   # Tell Netlify that the frontend code is in the 'client' folder
   base = "client"
-  # The command to build the Vite app
-  command = "npm run build"
+  # The command to build the Vite app (Fix for npm Linux optional dependency bug)
+  command = "rm -rf ../node_modules ../package-lock.json node_modules && npm install && npm run build"
   # Vite outputs the build to the 'dist' folder
   publish = "dist"
 
