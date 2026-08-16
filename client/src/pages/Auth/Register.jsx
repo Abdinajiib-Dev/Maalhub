@@ -77,10 +77,24 @@ const Register = () => {
         body: JSON.stringify(payload)
       });
 
-      const result = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      let result = null;
+      if (contentType.includes('application/json')) {
+        try {
+          result = await response.json();
+        } catch (e) {
+          result = null;
+        }
+      } else {
+        const text = await response.text();
+        if (text.trim().toLowerCase().startsWith('<!doctype') || text.includes('<html')) {
+          throw new Error(`Server returned HTML response (${response.status}). Please check backend API server.`);
+        }
+        result = { error: text };
+      }
       
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create profile');
+        throw new Error(result?.error || result?.message || 'Failed to create profile');
       }
 
       setIsSuccess(true);

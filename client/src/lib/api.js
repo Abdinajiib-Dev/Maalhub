@@ -3,6 +3,41 @@ import { supabase } from './supabase';
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
 
 /**
+ * Helper function to safely parse API response and handle non-JSON / HTML error responses
+ */
+const parseResponse = async (response) => {
+  const contentType = response.headers.get('content-type') || '';
+  let data = null;
+
+  if (contentType.includes('application/json')) {
+    try {
+      data = await response.json();
+    } catch (e) {
+      data = null;
+    }
+  } else {
+    const text = await response.text();
+    if (text.trim().toLowerCase().startsWith('<!doctype') || text.includes('<html')) {
+      throw new Error(`Server returned HTML response (${response.status} ${response.statusText}). Please ensure the API server is running.`);
+    }
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        data = { error: text };
+      }
+    }
+  }
+
+  if (!response.ok) {
+    const errorMessage = data?.error || data?.message || `API request failed with status ${response.status}`;
+    throw new Error(errorMessage);
+  }
+
+  return data;
+};
+
+/**
  * Helper function to fetch data from our backend with the user's JWT
  */
 const fetchWithAuth = async (endpoint, options = {}) => {
@@ -28,13 +63,7 @@ const fetchWithAuth = async (endpoint, options = {}) => {
     },
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || 'API request failed');
-  }
-
-  return data;
+  return parseResponse(response);
 };
 
 // API Services
@@ -42,15 +71,14 @@ export const api = {
   // Projects
   getProjects: async () => {
     const response = await fetch(`${API_URL}/projects`, { cache: 'no-store' });
-    const json = await response.json();
-    if (!response.ok) throw new Error(json.error || 'API request failed');
-    return json.data || json; // Handle both paginated and non-paginated structures safely
+    const json = await parseResponse(response);
+    if (Array.isArray(json)) return json;
+    if (json && Array.isArray(json.data)) return json.data;
+    return [];
   },
   getProject: async (id) => {
     const response = await fetch(`${API_URL}/projects/${id}`, { cache: 'no-store' });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'API request failed');
-    return data;
+    return parseResponse(response);
   },
   createProject: (data) => fetchWithAuth('/projects', { method: 'POST', body: JSON.stringify(data) }),
   getMyProjects: () => fetchWithAuth('/projects/my-projects').then(res => res.data || res),
