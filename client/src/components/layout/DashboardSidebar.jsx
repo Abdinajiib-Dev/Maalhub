@@ -8,10 +8,11 @@ import {
   MessageCircle, 
   User, 
   Settings,
-  TrendingUp
+  TrendingUp,
+  X
 } from 'lucide-react';
 
-const DashboardSidebar = () => {
+const DashboardSidebar = ({ mobileOpen, onClose }) => {
   const location = useLocation();
   const { profile } = useAuth();
   const isEntrepreneur = profile?.role === 'entrepreneur';
@@ -27,8 +28,23 @@ const DashboardSidebar = () => {
     { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
   ];
 
-  return (
-    <div className="w-60 bg-[#FAF9F6] border-r border-gray-100 flex flex-col h-[calc(100vh-5rem)] sticky top-20 flex-shrink-0">
+  const handleLinkClick = () => {
+    if (onClose) onClose();
+  };
+
+  const sidebarContent = (
+    <div className="flex flex-col h-full bg-[#FAF9F6]">
+      <div className="flex items-center justify-between p-4 md:hidden border-b border-gray-200">
+        <span className="font-bold text-gray-900 text-base">Dashboard Menu</span>
+        <button 
+          onClick={onClose}
+          className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          aria-label="Close menu"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
       <div className="flex-1 overflow-y-auto py-6 px-4">
         <nav className="space-y-1">
           {navLinks.map((link) => {
@@ -39,6 +55,7 @@ const DashboardSidebar = () => {
               <Link
                 key={link.name}
                 to={link.path}
+                onClick={handleLinkClick}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive 
                     ? 'bg-primary text-white shadow-sm' 
@@ -65,7 +82,8 @@ const DashboardSidebar = () => {
             </p>
             <Link 
               to="/entrepreneur/create-project" 
-              className="block w-full bg-primary hover:bg-secondary text-white text-xs font-medium py-2 rounded-lg transition-colors shadow-sm"
+              onClick={handleLinkClick}
+              className="block w-full bg-primary hover:bg-secondary text-white text-xs font-medium py-2 rounded-lg transition-colors shadow-sm text-center"
             >
               Create New Project
             </Link>
@@ -73,6 +91,30 @@ const DashboardSidebar = () => {
         </div>
       )}
     </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex md:w-60 lg:w-64 bg-[#FAF9F6] border-r border-gray-100 flex-col h-[calc(100vh-5rem)] sticky top-20 flex-shrink-0">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
+            onClick={onClose}
+          />
+          {/* Slide-over panel */}
+          <div className="relative flex-1 max-w-xs w-full bg-[#FAF9F6] h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

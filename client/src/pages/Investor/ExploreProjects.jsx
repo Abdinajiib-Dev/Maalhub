@@ -12,7 +12,7 @@ const ExploreProjects = () => {
     try {
       setLoading(true);
       const data = await api.getSavedProjects();
-      setSavedProjects(data || []);
+      setSavedProjects(Array.isArray(data) ? data.filter(s => s && s.project) : []);
     } catch (err) {
       setError(err.message || 'Failed to load saved projects');
     } finally {
@@ -35,19 +35,19 @@ const ExploreProjects = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
             <Bookmark className="text-primary" size={28} />
             Saved Projects
           </h1>
-          <p className="text-gray-500 mt-1">Manage your watchlist of interesting investment opportunities.</p>
+          <p className="text-gray-500 mt-1 text-sm">Manage your watchlist of interesting investment opportunities.</p>
         </div>
         <Link 
           to="/projects" 
-          className="bg-primary hover:bg-secondary text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center shadow-sm"
+          className="w-full sm:w-auto bg-primary hover:bg-secondary text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center shadow-sm text-center"
         >
           Discover New Projects
           <ArrowRight className="w-4 h-4 ml-2" />
@@ -84,31 +84,31 @@ const ExploreProjects = () => {
           {savedProjects.map((item) => (
             <div key={item.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden flex flex-col relative group">
               <div className="h-40 bg-gray-100 relative overflow-hidden">
-                {item.project.project_image_url ? (
-                  <img src={item.project.project_image_url} alt={item.project.project_name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                {item.project?.project_image_url ? (
+                  <img src={item.project.project_image_url} alt={item.project.project_name || 'Project'} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400 bg-[#FAF9F6]"><FolderOpen size={40}/></div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 right-4">
                   <span className="inline-block px-2.5 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-semibold rounded-full mb-2">
-                    {item.project.industry || 'Various'}
+                    {item.project?.industry || 'Various'}
                   </span>
                   <h3 className="text-lg font-bold text-white line-clamp-1">
-                    {item.project.project_name}
+                    {item.project?.project_name || 'Untitled Project'}
                   </h3>
                 </div>
               </div>
 
               <div className="p-5 flex-grow">
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {item.project.project_description || 'No description provided.'}
+                  {item.project?.project_description || 'No description provided.'}
                 </p>
 
                 <div className="flex justify-between items-center text-sm">
                   <div>
                     <span className="block text-gray-500 text-[11px] uppercase tracking-wider">Funding Goal</span>
-                    <span className="font-semibold text-gray-900">${item.project.funding_goal?.toLocaleString() || '0'}</span>
+                    <span className="font-semibold text-gray-900">${item.project?.funding_goal?.toLocaleString() || '0'}</span>
                   </div>
                   <div className="text-right">
                     <span className="block text-gray-500 text-[11px] uppercase tracking-wider">Saved On</span>

@@ -106,21 +106,21 @@ const Settings = () => {
   };
 
   return (
-    <div className="px-8 py-8 w-full max-w-[1000px] mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 mt-2 text-sm">Manage your account settings and preferences.</p>
+    <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 w-full max-w-[1000px] mx-auto">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
+        <p className="text-gray-500 mt-1 text-sm">Manage your account settings and preferences.</p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Sidebar Nav */}
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+        {/* Sidebar Nav / Mobile Tabs */}
         <div className="w-full md:w-64 flex-shrink-0">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 flex flex-col space-y-1">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1.5 sm:p-2 flex flex-row md:flex-col space-x-1 md:space-x-0 md:space-y-1 overflow-x-auto">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center justify-center md:justify-start gap-2.5 px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-1 md:flex-none ${
                 activeTab === 'profile'
-                  ? 'bg-primary/5 text-primary'
+                  ? 'bg-primary/10 text-primary font-semibold'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -129,9 +129,9 @@ const Settings = () => {
             </button>
             <button
               onClick={() => setActiveTab('security')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center justify-center md:justify-start gap-2.5 px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-1 md:flex-none ${
                 activeTab === 'security'
-                  ? 'bg-primary/5 text-primary'
+                  ? 'bg-primary/10 text-primary font-semibold'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -142,20 +142,20 @@ const Settings = () => {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {activeTab === 'profile' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-900">Profile Information</h2>
-                <p className="text-sm text-gray-500 mt-1">Update your personal details and public profile picture.</p>
+              <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">Profile Information</h2>
+                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Update your personal details and public profile picture.</p>
               </div>
               
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <form onSubmit={handleSaveProfile} className="space-y-6">
                   {/* Avatar Upload */}
-                  <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-50">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 pb-6 border-b border-gray-50 text-center sm:text-left">
                     <div className="relative">
-                      <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative group">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative group">
                         {profilePhotoUrl ? (
                           <img src={profilePhotoUrl} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
@@ -175,7 +175,7 @@ const Settings = () => {
                     <div>
                       <h3 className="font-medium text-gray-900 text-sm mb-1">Profile Photo</h3>
                       <p className="text-xs text-gray-500 mb-3">JPG, GIF or PNG. Max size of 5MB.</p>
-                      <label className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 cursor-pointer transition-colors inline-block">
+                      <label className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 cursor-pointer transition-colors inline-block shadow-xs">
                         {isUploading ? 'Uploading...' : 'Upload New'}
                         <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
                       </label>
@@ -190,18 +190,18 @@ const Settings = () => {
 
                   {profileSuccess && (
                     <div className="bg-green-50 text-green-700 p-3 rounded-lg text-sm flex items-center gap-2">
-                      <CheckCircle2 size={16} /> Profile updated successfully! (Refresh to see changes globally)
+                      <CheckCircle2 size={16} /> Profile updated successfully!
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="col-span-1 md:col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="col-span-1 sm:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                       <input 
                         type="text" 
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm"
                         required
                       />
                     </div>
@@ -212,7 +212,7 @@ const Settings = () => {
                         type="text" 
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm"
                       />
                     </div>
 
@@ -222,7 +222,7 @@ const Settings = () => {
                         type="text" 
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm"
                       />
                     </div>
                   </div>
@@ -231,7 +231,7 @@ const Settings = () => {
                     <button 
                       type="submit" 
                       disabled={isSavingProfile || isUploading}
-                      className="px-6 py-2.5 bg-primary text-white font-medium text-sm rounded-lg hover:bg-secondary transition-colors flex items-center gap-2 disabled:opacity-70"
+                      className="w-full sm:w-auto px-6 py-2.5 bg-primary text-white font-medium text-sm rounded-lg hover:bg-secondary transition-colors flex items-center justify-center gap-2 disabled:opacity-70 shadow-sm"
                     >
                       {isSavingProfile ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                       Save Changes
@@ -244,12 +244,12 @@ const Settings = () => {
 
           {activeTab === 'security' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-900">Security Settings</h2>
-                <p className="text-sm text-gray-500 mt-1">Manage your password and account security.</p>
+              <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">Security Settings</h2>
+                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Manage your password and account security.</p>
               </div>
               
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className="max-w-md">
                   <h3 className="text-sm font-bold text-gray-900 mb-2">Change Password</h3>
                   <p className="text-sm text-gray-500 mb-6 leading-relaxed">
@@ -271,7 +271,7 @@ const Settings = () => {
                   <button 
                     onClick={handleSendResetLink}
                     disabled={isSavingPassword}
-                    className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-70 shadow-sm"
+                    className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 shadow-sm"
                   >
                     {isSavingPassword ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} className="text-gray-400" />}
                     Send Password Reset Link

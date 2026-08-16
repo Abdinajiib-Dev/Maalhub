@@ -36,16 +36,16 @@ const MyProjects = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
-          <p className="text-gray-500 mt-1">Manage the projects you have published to investors.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Projects</h1>
+          <p className="text-gray-500 mt-1 text-sm">Manage the projects you have published to investors.</p>
         </div>
         <Link 
           to="/entrepreneur/create-project" 
-          className="bg-primary hover:bg-secondary text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center shadow-sm"
+          className="w-full sm:w-auto bg-primary hover:bg-secondary text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center shadow-sm text-center"
         >
           <Plus className="w-5 h-5 mr-2" />
           Create Project
