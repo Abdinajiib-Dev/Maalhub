@@ -72,11 +72,11 @@ const InvestmentRequests = () => {
   const isInvestor = profile?.role === 'investor';
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Investment Requests</h1>
-        <p className="text-gray-500 mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Investment Requests</h1>
+        <p className="text-gray-500 mt-1 text-sm">
           {isInvestor 
             ? "Track and manage the investment offers you have sent to entrepreneurs." 
             : "Review and respond to incoming investment offers for your projects."}
@@ -94,31 +94,31 @@ const InvestmentRequests = () => {
           <p className="text-red-700">{error}</p>
         </div>
       ) : requests.length === 0 ? (
-        <div className="bg-white p-12 rounded-xl border border-gray-100 text-center shadow-sm">
+        <div className="bg-white p-8 sm:p-12 rounded-xl border border-gray-100 text-center shadow-sm">
           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <DollarSign className="h-8 w-8 text-gray-400" />
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">No Requests Found</h3>
-          <p className="text-gray-500 max-w-md mx-auto mb-6">
+          <p className="text-gray-500 max-w-md mx-auto mb-6 text-sm">
             {isInvestor 
               ? "You haven't made any investment requests yet." 
               : "You haven't received any investment requests for your projects yet."}
           </p>
           {isInvestor && (
-            <Link to="/projects" className="inline-flex items-center text-primary font-medium hover:underline">
+            <Link to="/projects" className="inline-flex items-center text-primary font-medium text-sm hover:underline">
               Explore Projects
             </Link>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           {requests.map((request) => (
-            <div key={request.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row md:items-center p-6 gap-6 relative">
+            <div key={request.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col lg:flex-row lg:items-center p-4 sm:p-6 gap-4 sm:gap-6 relative">
               
               {/* Primary Info */}
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-bold text-gray-900">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
                     <Link to={`/projects/${request.project_id}`} className="hover:text-primary transition-colors">
                       {request.project?.project_name || 'Unknown Project'}
                     </Link>
@@ -132,19 +132,19 @@ const InvestmentRequests = () => {
                     : `Investor: ${request.investor?.full_name || 'Unknown'}`}
                 </p>
 
-                <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 border border-gray-100">
-                  <div className="flex items-center gap-2 mb-2 font-medium text-gray-900">
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-xs sm:text-sm text-gray-700 border border-gray-100">
+                  <div className="flex items-center gap-2 mb-1.5 font-medium text-gray-900">
                     <MessageSquare className="w-4 h-4 text-gray-400" />
                     Message:
                   </div>
-                  <p className="whitespace-pre-line">{request.message}</p>
+                  <p className="whitespace-pre-line leading-relaxed">{request.message}</p>
                 </div>
               </div>
 
               {/* Amount & Actions */}
-              <div className="md:w-64 flex flex-col items-start md:items-end md:text-right border-t md:border-t-0 md:border-l border-gray-100 pt-6 md:pt-0 md:pl-6">
-                <span className="block text-gray-500 text-sm mb-1">Proposed Amount</span>
-                <span className="text-3xl font-black text-gray-900 mb-6">${request.proposed_amount?.toLocaleString() || '0'}</span>
+              <div className="w-full lg:w-64 flex flex-col items-start lg:items-end lg:text-right border-t lg:border-t-0 lg:border-l border-gray-100 pt-4 lg:pt-0 lg:pl-6">
+                <span className="block text-gray-500 text-xs sm:text-sm mb-0.5">Proposed Amount</span>
+                <span className="text-2xl sm:text-3xl font-black text-gray-900 mb-4 lg:mb-6">${request.proposed_amount?.toLocaleString() || '0'}</span>
 
                 <div className="w-full space-y-2">
                   {request.status === 'Pending' && (
@@ -153,7 +153,7 @@ const InvestmentRequests = () => {
                         <button 
                           onClick={() => handleUpdateStatus(request.id, 'Withdrawn')}
                           disabled={actionLoading === request.id}
-                          className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+                          className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                         >
                           {actionLoading === request.id ? 'Updating...' : 'Withdraw Request'}
                         </button>
@@ -162,21 +162,21 @@ const InvestmentRequests = () => {
                           <button 
                             onClick={() => handleUpdateStatus(request.id, 'Accepted')}
                             disabled={actionLoading === request.id || actionLoading === 'msg-' + request.investor_id}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+                            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                           >
                             {actionLoading === request.id ? 'Updating...' : 'Accept Offer'}
                           </button>
                           <button 
                             onClick={() => handleUpdateStatus(request.id, 'Rejected')}
                             disabled={actionLoading === request.id || actionLoading === 'msg-' + request.investor_id}
-                            className="w-full bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+                            className="w-full bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                           >
                             {actionLoading === request.id ? 'Updating...' : 'Reject Offer'}
                           </button>
                           <button 
                             onClick={() => handleMessageUser(request.investor_id)}
                             disabled={actionLoading === request.id || actionLoading === 'msg-' + request.investor_id}
-                            className="w-full bg-primary hover:bg-secondary text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center disabled:opacity-50 mt-2"
+                            className="w-full bg-primary hover:bg-secondary text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center disabled:opacity-50 mt-2"
                           >
                             {actionLoading === 'msg-' + request.investor_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4 mr-2" />}
                             Message Investor
