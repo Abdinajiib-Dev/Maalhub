@@ -81,12 +81,12 @@ export const api = {
     return parseResponse(response);
   },
   createProject: (data) => fetchWithAuth('/projects', { method: 'POST', body: JSON.stringify(data) }),
-  getMyProjects: () => fetchWithAuth('/projects/my-projects').then(res => res.data || res),
+  getMyProjects: () => fetchWithAuth('/projects/my-projects').then(res => (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [])),
   updateProject: (id, data) => fetchWithAuth(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProject: (id) => fetchWithAuth(`/projects/${id}`, { method: 'DELETE' }),
   
   // Investment Requests
-  getInvestmentRequests: () => fetchWithAuth('/investment-requests'),
+  getInvestmentRequests: () => fetchWithAuth('/investment-requests').then(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
   createInvestmentRequest: (data) => fetchWithAuth('/investment-requests', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -97,7 +97,7 @@ export const api = {
   }),
   
   // Saved Projects
-  getSavedProjects: () => fetchWithAuth('/saved-projects'),
+  getSavedProjects: () => fetchWithAuth('/saved-projects').then(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
   saveProject: (project_id) => fetchWithAuth('/saved-projects', { method: 'POST', body: JSON.stringify({ project_id }) }),
   unsaveProject: (project_id) => fetchWithAuth(`/saved-projects/${project_id}`, { method: 'DELETE' }),
   

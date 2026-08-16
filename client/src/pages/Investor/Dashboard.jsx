@@ -22,10 +22,12 @@ const Dashboard = () => {
       try {
         setLoading(true);
         const saved = await api.getSavedProjects();
-        setSavedProjects(saved || []);
+        const validSaved = Array.isArray(saved) ? saved.filter(s => s && s.project) : [];
+        setSavedProjects(validSaved);
         
         const reqs = await api.getInvestmentRequests();
-        setRequests(reqs.filter(r => r.investor_id === user.id));
+        const validReqs = Array.isArray(reqs) ? reqs.filter(r => r && (r.investor_id === user?.id)) : [];
+        setRequests(validReqs);
       } catch (err) {
         console.error(err);
       } finally {
@@ -148,8 +150,8 @@ const Dashboard = () => {
             {savedProjects.slice(0, 3).map((item) => (
               <div key={item.id} className="flex flex-col sm:flex-row gap-4 sm:gap-5 pb-6 border-b border-gray-50 last:border-0 last:pb-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 shadow-sm border border-gray-100">
-                  {item.project.project_image_url ? (
-                    <img src={item.project.project_image_url} alt={item.project.project_name} className="w-full h-full object-cover" />
+                  {item.project?.project_image_url ? (
+                    <img src={item.project.project_image_url} alt={item.project.project_name || 'Project'} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400"><FolderOpen size={28}/></div>
                   )}
@@ -157,8 +159,8 @@ const Dashboard = () => {
                 <div className="flex-1 min-w-0 flex flex-col sm:flex-row justify-between gap-4">
                   <div className="flex flex-col justify-between py-0.5">
                     <div>
-                      <h3 className="font-bold text-gray-900 text-sm truncate mb-1">{item.project.project_name}</h3>
-                      <p className="text-xs text-gray-500">{item.project.industry}</p>
+                      <h3 className="font-bold text-gray-900 text-sm truncate mb-1">{item.project?.project_name || 'Untitled Project'}</h3>
+                      <p className="text-xs text-gray-500">{item.project?.industry || 'N/A'}</p>
                     </div>
                     <p className="text-xs text-gray-400 mt-2 sm:mt-0">
                       Saved on {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}

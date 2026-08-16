@@ -22,10 +22,11 @@ const Dashboard = () => {
       try {
         setLoading(true);
         const reqs = await api.getInvestmentRequests();
-        setRequests(reqs.filter(r => r.entrepreneur_id === user.id));
+        const validReqs = Array.isArray(reqs) ? reqs.filter(r => r && (r.entrepreneur_id === user?.id)) : [];
+        setRequests(validReqs);
         
         const myProjects = await api.getMyProjects();
-        setProjects(myProjects || []);
+        setProjects(Array.isArray(myProjects) ? myProjects : []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -142,7 +143,10 @@ const Dashboard = () => {
           
           <div className="space-y-6">
             {projects.slice(0, 3).map((project) => {
-              const percentage = project.funding_goal ? Math.min(Math.round((0 / project.funding_goal) * 100), 100) : 0;
+              const raisedAmount = requests
+                .filter(r => r.project_id === project.id && r.status === 'Accepted')
+                .reduce((sum, r) => sum + Number(r.proposed_amount || 0), 0);
+              const percentage = project.funding_goal ? Math.min(Math.round((raisedAmount / project.funding_goal) * 100), 100) : 0;
               return (
                 <div key={project.id} className="flex flex-col sm:flex-row gap-4 sm:gap-5 pb-6 border-b border-gray-50 last:border-0 last:pb-0">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 shadow-sm border border-gray-100">
@@ -166,7 +170,7 @@ const Dashboard = () => {
                     <div className="w-full sm:w-56 flex flex-col justify-between py-0.5">
                       <div>
                         <div className="flex justify-between text-xs font-bold text-gray-900 mb-2">
-                          <span>$0 / ${Number(project.funding_goal).toLocaleString()}</span>
+                          <span>${raisedAmount.toLocaleString()} / ${Number(project.funding_goal || 0).toLocaleString()}</span>
                           <span className="text-gray-500">{percentage}%</span>
                         </div>
                         <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
