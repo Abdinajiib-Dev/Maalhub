@@ -1,7 +1,50 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowRight } from 'lucide-react';
+import { Shield, ArrowRight, FolderKanban, Filter, TrendingUp, MessageSquare, BarChart3, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+
+const features = [
+  {
+    icon: FolderKanban,
+    title: 'Comprehensive Project Profiles',
+    description: 'Entrepreneurs can showcase pitch details, funding goals, category classifications, and project updates in structured profiles.',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
+  },
+  {
+    icon: Filter,
+    title: 'Smart Search & Filtering',
+    description: 'Investors can easily discover and filter projects by category, funding requirement, location, and investment status.',
+    bgColor: 'bg-secondary/10',
+    iconColor: 'text-secondary',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Direct Investment Proposals',
+    description: 'Seamless mechanism for investors to submit investment requests directly to project founders and track proposal statuses.',
+    bgColor: 'bg-emerald-100',
+    iconColor: 'text-emerald-700',
+  },
+  {
+    icon: MessageSquare,
+    title: 'In-App Direct Messaging',
+    description: 'Integrated real-time messaging enabling transparent communication and deal negotiations between founders and investors.',
+    bgColor: 'bg-blue-100',
+    iconColor: 'text-blue-700',
+  },
+  {
+    icon: BarChart3,
+    title: 'Interactive Dashboards',
+    description: 'Customized dashboards for entrepreneurs and investors to monitor project activity, bookmark favorites, and manage requests.',
+    bgColor: 'bg-purple-100',
+    iconColor: 'text-purple-700',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Verified Profiles & Security',
+    description: 'Role-based authentication and secure data protection ensuring safe, trustworthy interactions across the platform.',
+  },
+];
 
 const Home = () => {
   const { user, profile } = useAuth();
@@ -121,8 +164,40 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Project Features */}
+      <section className="py-20 bg-background border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Project Features</h2>
+            <p className="text-lg text-gray-600">
+              Powerful tools and capabilities designed to empower entrepreneurs and streamline investment opportunities.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <div 
+                  key={index}
+                  className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all group"
+                >
+                  <div className={`w-12 h-12 rounded-xl ${feature.bgColor || 'bg-amber-100'} flex items-center justify-center ${feature.iconColor || 'text-amber-700'} mb-6 group-hover:scale-110 transition-transform`}>
+                    <IconComponent className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <p className="text-gray-600 leading-relaxed text-sm">
+                    {feature.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* How It Works */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-white border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-16">How It Works</h2>
           <div className="grid md:grid-cols-2 gap-16">
@@ -203,3 +278,4 @@ const Home = () => {
 };
 
 export default Home;
+
