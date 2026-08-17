@@ -33,8 +33,8 @@ const getPagination = (page, size) => {
   return { from, to };
 };
 
-// Get all published projects (Public/Investor)
-router.get('/', async (req, res, next) => {
+// Get all published projects
+router.get('/', requireAuth, async (req, res, next) => {
   try {
     const { page, limit } = req.query;
     const { from, to } = getPagination(page, limit);
@@ -91,7 +91,7 @@ router.get('/my-projects', requireAuth, async (req, res, next) => {
 });
 
 // Get single project details
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const { data, error } = await supabase
       .from('projects')
