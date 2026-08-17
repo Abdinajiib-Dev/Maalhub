@@ -81,7 +81,7 @@ const Navbar = () => {
 
           {/* Center: Navigation */}
           <div className="hidden md:flex flex-1 justify-center">
-            <div className="flex space-x-8">
+            <div className="flex space-x-6 sm:space-x-8">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
