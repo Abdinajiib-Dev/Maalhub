@@ -3,11 +3,12 @@ import { ZodError } from 'zod';
 export const errorHandler = (err, req, res, next) => {
   console.error(err.stack);
 
-  if (err instanceof ZodError) {
+  if (err instanceof ZodError || err.name === 'ZodError') {
+    const errorList = err.errors || err.issues || [];
     return res.status(400).json({
       error: 'Validation failed',
-      details: err.errors.map((e) => ({
-        field: e.path.join('.'),
+      details: errorList.map((e) => ({
+        field: e.path ? e.path.join('.') : 'unknown',
         message: e.message,
       })),
     });

@@ -70,15 +70,13 @@ const fetchWithAuth = async (endpoint, options = {}) => {
 export const api = {
   // Projects
   getProjects: async () => {
-    const response = await fetch(`${API_URL}/projects`, { cache: 'no-store' });
-    const json = await parseResponse(response);
+    const json = await fetchWithAuth('/projects', { cache: 'no-store' });
     if (Array.isArray(json)) return json;
     if (json && Array.isArray(json.data)) return json.data;
     return [];
   },
   getProject: async (id) => {
-    const response = await fetch(`${API_URL}/projects/${id}`, { cache: 'no-store' });
-    return parseResponse(response);
+    return fetchWithAuth(`/projects/${id}`, { cache: 'no-store' });
   },
   createProject: (data) => fetchWithAuth('/projects', { method: 'POST', body: JSON.stringify(data) }),
   getMyProjects: () => fetchWithAuth('/projects/my-projects').then(res => (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [])),

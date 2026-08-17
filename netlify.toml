@@ -6,6 +6,13 @@
   # Vite outputs the build to the 'dist' folder
   publish = "dist"
 
+# Proxy API requests to Northflank backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://site--maalhub-server--8pjr9gvv5yjl.code.run/api/:splat"
+  status = 200
+  force = true
+
 # Handle React Router (SPA) client-side routing
 # This ensures that if someone visits /about directly, it loads the React app instead of a 404
 [[redirects]]

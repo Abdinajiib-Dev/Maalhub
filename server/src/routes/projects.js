@@ -9,8 +9,8 @@ const router = express.Router();
 // Validation Schemas
 const projectSchema = z.object({
   body: z.object({
-    title: z.string().min(3, "Title must be at least 3 characters").max(100),
-    description: z.string().min(10, "Description must be at least 10 characters"),
+    project_name: z.string().min(3, "Title must be at least 3 characters").max(100),
+    project_description: z.string().min(10, "Description must be at least 10 characters"),
     funding_goal: z.number().positive("Funding goal must be positive").optional(),
     status: z.enum(['Draft', 'Published', 'Funded']).optional(),
   }).passthrough() // Allow other fields to avoid breaking existing frontend
@@ -18,8 +18,8 @@ const projectSchema = z.object({
 
 const updateProjectSchema = z.object({
   body: z.object({
-    title: z.string().min(3).max(100).optional(),
-    description: z.string().min(10).optional(),
+    project_name: z.string().min(3).max(100).optional(),
+    project_description: z.string().min(10).optional(),
     funding_goal: z.number().positive().optional(),
     status: z.enum(['Draft', 'Published', 'Funded']).optional(),
   }).passthrough()
@@ -33,8 +33,8 @@ const getPagination = (page, size) => {
   return { from, to };
 };
 
-// Get all published projects (Public/Investor)
-router.get('/', async (req, res, next) => {
+// Get all published projects
+router.get('/', requireAuth, async (req, res, next) => {
   try {
     const { page, limit } = req.query;
     const { from, to } = getPagination(page, limit);
@@ -91,7 +91,7 @@ router.get('/my-projects', requireAuth, async (req, res, next) => {
 });
 
 // Get single project details
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const { data, error } = await supabase
       .from('projects')
