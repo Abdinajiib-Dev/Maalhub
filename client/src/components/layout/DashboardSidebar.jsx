@@ -9,6 +9,7 @@ import {
   User, 
   Settings,
   TrendingUp,
+  Mail,
   X
 } from 'lucide-react';
 
@@ -26,6 +27,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
     { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
     { name: 'Profile', path: `${basePath}/profile`, icon: User },
     { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
+    { name: 'Contact', path: '/contact', icon: Mail },
   ];
 
   const handleLinkClick = () => {
