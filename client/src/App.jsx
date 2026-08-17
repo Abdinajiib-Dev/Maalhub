@@ -24,12 +24,14 @@ import Profile from './pages/Shared/Profile';
 import Settings from './pages/Shared/Settings';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import ScrollToTop from './components/layout/ScrollToTop';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-      <Routes>
+        <ScrollToTop />
+        <Routes>
         {/* Public Routes with Standard Layout */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
