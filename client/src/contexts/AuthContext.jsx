@@ -16,57 +16,125 @@ export const AuthProvider = ({ children }) => {
         .eq('id', userId)
         .single();
         
-      if (error) {
-        console.error('Error fetching profile:', error);
-      } else {
+      if (!error && data) {
         setProfile(data);
+        return;
       }
     } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      console.warn('Supabase profile fetch error:', err);
     }
+
+    // Check local profile fallback
+    const localProfileRaw = localStorage.getItem('maalhub_local_profile');
+    if (localProfileRaw) {
+      try {
+        setProfile(JSON.parse(localProfileRaw));
+      } catch (e) {
+        setProfile(null);
+      }
+    } else {
+      setProfile(null);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
+    const loadLocalAuthSession = () => {
+      const localSessionRaw = localStorage.getItem('maalhub_local_session');
+      if (localSessionRaw) {
+        try {
+          const localSession = JSON.parse(localSessionRaw);
+          if (localSession?.user) {
+            setUser(localSession.user);
+            const localProfileRaw = localStorage.getItem('maalhub_local_profile');
+            if (localProfileRaw) {
+              setProfile(JSON.parse(localProfileRaw));
+            } else {
+              setProfile({
+                id: localSession.user.id,
+                email: localSession.user.email,
+                full_name: localSession.user.user_metadata?.full_name || 'Sumaya Anwar',
+                role: 'entrepreneur',
+                city: 'Mogadishu',
+                country: 'Somalia'
+              });
+            }
+            setLoading(false);
+            return true;
+          }
+        } catch (err) {
+          console.error("Local session parse error:", err);
+        }
+      }
+      return false;
+    };
+
     // Check active sessions and sets the user
     const fetchSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error("Error getting session:", error);
-        setLoading(false);
-        return;
+      let supabaseSessionFound = false;
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!error && session?.user) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+          supabaseSessionFound = true;
+        }
+      } catch (err) {
+        console.warn("Supabase getSession failed, trying local fallback.");
       }
-      
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
+
+      if (!supabaseSessionFound) {
+        loadLocalAuthSession();
       }
+      setLoading(false);
     };
     
     fetchSession();
 
-    // Listen for changes on auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
+    // Listen for custom local auth state changes
+    const handleCustomAuthChange = () => {
+      if (!loadLocalAuthSession()) {
+        setUser(null);
         setProfile(null);
         setLoading(false);
       }
-    });
+    };
+
+    window.addEventListener('maalhub_auth_change', handleCustomAuthChange);
+
+    // Listen for changes on Supabase auth state
+    let subscription = null;
+    try {
+      const res = supabase.auth.onAuthStateChange(async (_event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        } else {
+          loadLocalAuthSession();
+        }
+      });
+      subscription = res?.data?.subscription;
+    } catch (e) {
+      console.warn("Supabase onAuthStateChange setup skipped");
+    }
 
     return () => {
+      window.removeEventListener('maalhub_auth_change', handleCustomAuthChange);
       subscription?.unsubscribe();
     };
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      // ignore network errors on signout
+    }
+    localStorage.removeItem('maalhub_local_session');
+    localStorage.removeItem('maalhub_local_profile');
+    setUser(null);
+    setProfile(null);
+    window.dispatchEvent(new Event('maalhub_auth_change'));
   };
 
   return (
