@@ -1,15 +1,17 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, LineChart } from 'lucide-react';
+import { Menu, X, LineChart, ChevronDown, LayoutDashboard, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../lib/api';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
+  const [showProfileMenu, setShowProfileMenu] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [unreadMessages, setUnreadMessages] = React.useState([]);
   const notificationRef = React.useRef(null);
+  const profileMenuRef = React.useRef(null);
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,16 +40,19 @@ const Navbar = () => {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
     };
     
-    if (showNotifications) {
+    if (showNotifications || showProfileMenu) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showNotifications]);
+  }, [showNotifications, showProfileMenu]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -167,27 +172,56 @@ const Navbar = () => {
                   )}
                 </div>
 
-                {/* User Avatar & Dropdown */}
-                <div className="flex items-center space-x-2 cursor-pointer group relative">
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 border border-gray-200">
-                    <img src={profile?.profile_photo_url || "https://ui-avatars.com/api/?name=" + (profile?.full_name || 'User') + "&background=8A5F41&color=fff"} alt="User Avatar" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <span className="text-sm font-medium text-gray-700">{profile?.full_name?.split(' ')[0] || 'User'}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 group-hover:text-primary"><path d="m6 9 6 6 6-6"/></svg>
-                  </div>
-                  
-                  {/* Dropdown Menu */}
-                  <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <div className="py-1">
-                      <Link to={profile?.role === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">
-                        Dashboard
+                {/* Clickable Profile Button & Dropdown */}
+                <div className="relative" ref={profileMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="flex items-center space-x-2.5 px-3 py-1.5 rounded-full bg-white border border-gray-200 hover:border-primary/40 hover:bg-gray-50 transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                  >
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 border border-primary/20 flex-shrink-0 flex items-center justify-center">
+                      <img 
+                        src={profile?.profile_photo_url || "https://ui-avatars.com/api/?name=" + (profile?.full_name || 'User') + "&background=8A5F41&color=fff"} 
+                        alt="User Avatar" 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-800 max-w-[120px] truncate">
+                      {profile?.full_name?.split(' ')[0] || 'User'}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showProfileMenu ? 'rotate-180 text-primary' : ''}`} />
+                  </button>
+
+                  {/* Profile Dropdown Menu */}
+                  {showProfileMenu && (
+                    <div className="absolute top-full right-0 mt-2.5 w-52 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden py-1.5 animate-in fade-in-50 duration-150">
+                      <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50/60">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{profile?.full_name || 'User'}</p>
+                        <p className="text-[11px] text-gray-500 capitalize">{profile?.role || 'Member'}</p>
+                      </div>
+
+                      <Link
+                        to={profile?.role === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'}
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-primary" />
+                        <span>Dashboard</span>
                       </Link>
-                      <button onClick={handleSignOut} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600">
-                        Sign Out
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          handleSignOut();
+                        }}
+                        className="w-full flex items-center space-x-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium text-left border-t border-gray-100 mt-1 cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4 text-red-500" />
+                        <span>Sign Out</span>
                       </button>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
