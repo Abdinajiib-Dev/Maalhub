@@ -262,16 +262,18 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-20 bg-primary text-white text-center">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-6">Ready to find your next big opportunity?</h2>
-          <p className="text-xl mb-10 text-white/90">Join MaalHub today and be part of the future of business.</p>
-          <Link to="/register" className="bg-white text-primary px-8 py-3 rounded-md text-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg">
-            Join MaalHub
-          </Link>
-        </div>
-      </section>
+      {/* Final CTA - Only visible for logged-out users */}
+      {!user && (
+        <section className="py-20 bg-primary text-white text-center">
+          <div className="max-w-4xl mx-auto px-4">
+            <h2 className="text-3xl font-bold mb-6">Ready to find your next big opportunity?</h2>
+            <p className="text-xl mb-10 text-white/90">Join MaalHub today and be part of the future of business.</p>
+            <Link to="/register" className="bg-white text-primary px-8 py-3 rounded-md text-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg">
+              Join MaalHub
+            </Link>
+          </div>
+        </section>
+      )}
 
     </div>
   );
