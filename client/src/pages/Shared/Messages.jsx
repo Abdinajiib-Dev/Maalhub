@@ -273,7 +273,7 @@ const Messages = () => {
                       isSelected 
                         ? 'bg-primary/10 border-l-4 border-l-primary shadow-2xs' 
                         : unreadCount > 0 
-                          ? 'bg-red-50/50 hover:bg-red-50/80 border-l-4 border-l-red-500' 
+                          ? 'bg-primary/5 hover:bg-primary/10 border-l-4 border-l-primary' 
                           : 'hover:bg-gray-100/70 border-l-4 border-l-transparent'
                     }`}
                   >
@@ -287,24 +287,16 @@ const Messages = () => {
                           </div>
                         )}
                       </div>
-                      {unreadCount > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-red-500 border-2 border-white rounded-full" />
-                      )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-1">
-                        <h4 className={`truncate text-sm ${unreadCount > 0 ? 'font-extrabold text-gray-900' : 'font-semibold text-gray-800'}`}>
+                        <h4 className={`truncate text-sm ${unreadCount > 0 ? 'font-extrabold text-gray-900' : 'font-semibold text-gray-700'}`}>
                           {otherUser?.full_name || 'Unknown User'}
                         </h4>
-                        {unreadCount > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-red-500 text-white shadow-2xs flex-shrink-0">
-                            <span>🔴</span>
-                            <span>{unreadCount} unread</span>
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-gray-400 flex-shrink-0 font-normal">
-                            No unread
+                        {unreadCount > 0 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-extrabold bg-primary text-white shadow-2xs flex-shrink-0">
+                            {unreadCount}
                           </span>
                         )}
                       </div>

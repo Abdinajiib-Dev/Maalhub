@@ -121,24 +121,20 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <Icon size={18} className={isActive ? 'text-white' : 'text-gray-500'} />
-                  <span className="truncate flex items-center gap-1.5">
-                    <span>{link.name}</span>
-                    {isMessages && unreadCount > 0 && (
-                      <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    )}
+                  <span className="truncate">
+                    {link.name}
                   </span>
                 </div>
 
                 {isMessages && unreadCount > 0 && (
                   <span 
-                    className={`ml-2 px-2.5 py-0.5 text-xs font-extrabold rounded-full flex items-center gap-1 flex-shrink-0 transition-all ${
+                    className={`ml-2 px-2 py-0.5 text-xs font-extrabold rounded-full flex-shrink-0 transition-all ${
                       isActive 
-                        ? 'bg-white text-red-600 shadow-xs' 
-                        : 'bg-red-500 text-white shadow-xs'
+                        ? 'bg-white text-primary shadow-xs' 
+                        : 'bg-primary text-white shadow-xs'
                     }`}
                   >
-                    <span>🔴</span>
-                    <span>{unreadCount}</span>
+                    {unreadCount}
                   </span>
                 )}
               </Link>
