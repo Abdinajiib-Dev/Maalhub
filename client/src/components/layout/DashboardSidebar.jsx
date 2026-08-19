@@ -33,27 +33,13 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
     const fetchUnread = async () => {
       try {
         const data = await api.getUnreadMessages();
-        let count = (data && typeof data.count === 'number') ? data.count : 0;
-        
-        // If API returned 0 and user is in demo mode, calculate from demo read storage
-        if (count === 0) {
-          const readRaw = localStorage.getItem('maalhub_read_conversations');
-          const readSet = readRaw ? JSON.parse(readRaw) : [];
-          let demoCount = 0;
-          if (!readSet.includes('demo-conv-1')) demoCount += 2;
-          if (!readSet.includes('demo-conv-2')) demoCount += 1;
-          count = demoCount;
+        if (data && typeof data.count === 'number') {
+          setUnreadCount(data.count);
+        } else {
+          setUnreadCount(0);
         }
-
-        setUnreadCount(count);
       } catch (err) {
-        // Fallback calculation
-        const readRaw = localStorage.getItem('maalhub_read_conversations');
-        const readSet = readRaw ? JSON.parse(readRaw) : [];
-        let demoCount = 0;
-        if (!readSet.includes('demo-conv-1')) demoCount += 2;
-        if (!readSet.includes('demo-conv-2')) demoCount += 1;
-        setUnreadCount(demoCount);
+        setUnreadCount(0);
       }
     };
 

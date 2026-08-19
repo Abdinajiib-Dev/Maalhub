@@ -3,53 +3,6 @@ import { Send, Loader2, MessageSquare, Search, User, ArrowLeft } from 'lucide-re
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 
-const INITIAL_DEMO_CONVERSATIONS = [
-  {
-    id: 'demo-conv-1',
-    updated_at: new Date().toISOString(),
-    unread_count: 2,
-    participants: [
-      { user: { id: 'demo-user-abdinajiib', full_name: 'Abdinajiib Osman', role: 'entrepreneur', profile_photo_url: null } },
-      { user: { id: 'current-user', full_name: 'Sumaya Anwar', role: 'investor', profile_photo_url: null } }
-    ],
-    last_message: { message: 'Could you send me the updated financial forecasts when you get a moment?' }
-  },
-  {
-    id: 'demo-conv-2',
-    updated_at: new Date(Date.now() - 3600000).toISOString(),
-    unread_count: 1,
-    participants: [
-      { user: { id: 'demo-user-ahmed', full_name: 'Ahmed Hassan', role: 'investor', profile_photo_url: null } },
-      { user: { id: 'current-user', full_name: 'Sumaya Anwar', role: 'investor', profile_photo_url: null } }
-    ],
-    last_message: { message: 'Let us schedule a call for tomorrow morning.' }
-  },
-  {
-    id: 'demo-conv-3',
-    updated_at: new Date(Date.now() - 86400000).toISOString(),
-    unread_count: 0,
-    participants: [
-      { user: { id: 'demo-user-sumaya', full_name: 'Sumaya Mumin', role: 'entrepreneur', profile_photo_url: null } },
-      { user: { id: 'current-user', full_name: 'Sumaya Anwar', role: 'investor', profile_photo_url: null } }
-    ],
-    last_message: { message: 'Thanks for reviewing the pitch deck!' }
-  }
-];
-
-const DEMO_MESSAGES_MAP = {
-  'demo-conv-1': [
-    { id: 'm1', sender_id: 'demo-user-abdinajiib', message: 'Hello! I reviewed your project proposal on MaalHub and would love to discuss seed funding details.', created_at: new Date(Date.now() - 600000).toISOString() },
-    { id: 'm2', sender_id: 'demo-user-abdinajiib', message: 'Could you send me the updated financial forecasts when you get a moment?', created_at: new Date(Date.now() - 300000).toISOString() }
-  ],
-  'demo-conv-2': [
-    { id: 'm3', sender_id: 'demo-user-ahmed', message: 'Hi there! Let us schedule a brief call tomorrow morning to align on investment terms.', created_at: new Date(Date.now() - 3600000).toISOString() }
-  ],
-  'demo-conv-3': [
-    { id: 'm4', sender_id: 'demo-user-sumaya', message: 'Thank you for the quick response! Looking forward to working together.', created_at: new Date(Date.now() - 86400000).toISOString() },
-    { id: 'm5', sender_id: 'current-user', message: 'You are welcome! Let me know if you need any additional documents.', created_at: new Date(Date.now() - 82800000).toISOString() }
-  ]
-};
-
 const Messages = () => {
   const { user } = useAuth();
   
@@ -65,52 +18,16 @@ const Messages = () => {
   
   const messagesEndRef = useRef(null);
 
-  // Helper to get read conversation IDs from localStorage
-  const getReadSet = () => {
-    const raw = localStorage.getItem('maalhub_read_conversations');
-    return raw ? JSON.parse(raw) : [];
-  };
-
-  // Helper to mark a conversation ID as read in localStorage
-  const markConvAsReadLocal = (convId) => {
-    const readSet = getReadSet();
-    if (!readSet.includes(convId)) {
-      readSet.push(convId);
-      localStorage.setItem('maalhub_read_conversations', JSON.stringify(readSet));
-    }
-  };
-
-  // Fetch Conversations
+  // Fetch Conversations from Database API
   useEffect(() => {
     const fetchConversations = async () => {
       try {
         setLoadingConvs(true);
-        let data = [];
-        try {
-          data = await api.getConversations();
-        } catch (err) {
-          data = [];
-        }
-
-        const readSet = getReadSet();
-
-        if (!data || data.length === 0) {
-          // Use initial demo conversations if DB has no conversations or is in dev mode
-          const demoConvs = INITIAL_DEMO_CONVERSATIONS.map(conv => ({
-            ...conv,
-            unread_count: readSet.includes(conv.id) ? 0 : conv.unread_count
-          }));
-          setConversations(demoConvs);
-        } else {
-          // Enrich server conversations with local read status if needed
-          const enriched = data.map(conv => ({
-            ...conv,
-            unread_count: readSet.includes(conv.id) ? 0 : (conv.unread_count || 0)
-          }));
-          setConversations(enriched);
-        }
+        const data = await api.getConversations();
+        setConversations(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Failed to load conversations:', err);
+        setConversations([]);
       } finally {
         setLoadingConvs(false);
       }
@@ -119,26 +36,19 @@ const Messages = () => {
     fetchConversations();
   }, []);
 
-  // Fetch Messages for selected conversation & mark as read
+  // Fetch Messages for selected conversation & mark as read in Database
   const handleSelectConv = async (conv) => {
     setSelectedConv(conv);
     
-    // Update local state immediately to clear unread count for this sender
+    // Optimistically update local state to clear unread count for this sender
     setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c));
-    markConvAsReadLocal(conv.id);
-    window.dispatchEvent(new Event('unread_messages_updated'));
-
-    // If it's a demo conversation, load demo messages
-    if (DEMO_MESSAGES_MAP[conv.id]) {
-      setMessages(DEMO_MESSAGES_MAP[conv.id]);
-      return;
-    }
 
     try {
       setLoadingMessages(true);
       const data = await api.getMessages(conv.id);
-      setMessages(data);
+      setMessages(Array.isArray(data) ? data : []);
       
+      // Mark messages as read in database
       await api.markConversationAsRead(conv.id).catch(err => 
         console.error('Failed to mark conversation as read', err)
       );
@@ -161,30 +71,6 @@ const Messages = () => {
     
     const textToSend = messageText.trim();
     setMessageText('');
-
-    // If demo conversation, add locally
-    if (DEMO_MESSAGES_MAP[selectedConv.id]) {
-      const newMsg = {
-        id: `demo-msg-${Date.now()}`,
-        sender_id: user?.id || 'current-user',
-        message: textToSend,
-        created_at: new Date().toISOString()
-      };
-      const updatedDemoMsgs = [...(DEMO_MESSAGES_MAP[selectedConv.id] || []), newMsg];
-      DEMO_MESSAGES_MAP[selectedConv.id] = updatedDemoMsgs;
-      setMessages(updatedDemoMsgs);
-
-      setConversations(convs => 
-        convs.map(c => 
-          c.id === selectedConv.id 
-            ? { ...c, updated_at: new Date().toISOString(), last_message: { message: textToSend } } 
-            : c
-        ).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
-      );
-
-      window.dispatchEvent(new Event('unread_messages_updated'));
-      return;
-    }
 
     try {
       setIsSending(true);
