@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { api } from '../../lib/api';
 import { 
   Home, 
   Kanban, 
@@ -13,12 +14,49 @@ import {
   X
 } from 'lucide-react';
 
+const getCircledNumber = (num) => {
+  const circles = ['⓪', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳'];
+  return circles[num] || `(${num})`;
+};
+
 const DashboardSidebar = ({ mobileOpen, onClose }) => {
   const location = useLocation();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const isEntrepreneur = profile?.role === 'entrepreneur';
+  const [unreadCount, setUnreadCount] = useState(0);
   
   const basePath = isEntrepreneur ? '/entrepreneur' : '/investor';
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnread = async () => {
+      try {
+        const data = await api.getUnreadMessages();
+        if (data && typeof data.count === 'number') {
+          setUnreadCount(data.count);
+        }
+      } catch (err) {
+        console.error('Failed to fetch unread messages count:', err);
+      }
+    };
+
+    fetchUnread();
+    const intervalId = setInterval(fetchUnread, 10000);
+
+    const handleUpdate = () => {
+      fetchUnread();
+    };
+
+    window.addEventListener('unread_messages_updated', handleUpdate);
+    window.addEventListener('focus', handleUpdate);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('unread_messages_updated', handleUpdate);
+      window.removeEventListener('focus', handleUpdate);
+    };
+  }, [user]);
 
   const navLinks = [
     { name: 'Dashboard', path: `${basePath}/dashboard`, icon: Home },
@@ -52,20 +90,42 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = location.pathname === link.path;
+            const isMessages = link.name === 'Messages';
             
             return (
               <Link
                 key={link.name}
                 to={link.path}
                 onClick={handleLinkClick}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive 
                     ? 'bg-primary text-white shadow-sm' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-primary'
                 }`}
               >
-                <Icon size={18} className={isActive ? 'text-white' : 'text-gray-500'} />
-                {link.name}
+                <div className="flex items-center gap-3 min-w-0">
+                  <Icon size={18} className={isActive ? 'text-white' : 'text-gray-500'} />
+                  <span className="truncate">
+                    {link.name}
+                    {isMessages && unreadCount > 0 && (
+                      <span className="ml-1.5 font-bold">
+                        {getCircledNumber(unreadCount)}
+                      </span>
+                    )}
+                  </span>
+                </div>
+
+                {isMessages && unreadCount > 0 && (
+                  <span 
+                    className={`ml-2 px-2 py-0.5 text-xs font-extrabold rounded-full flex-shrink-0 transition-colors ${
+                      isActive 
+                        ? 'bg-white text-primary' 
+                        : 'bg-primary text-white shadow-xs'
+                    }`}
+                  >
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}

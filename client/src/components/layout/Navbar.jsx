@@ -30,9 +30,18 @@ const Navbar = () => {
     };
     
     fetchUnread();
-    const intervalId = setInterval(fetchUnread, 30000);
+    const intervalId = setInterval(fetchUnread, 10000);
+
+    const handleUpdate = () => {
+      fetchUnread();
+    };
+
+    window.addEventListener('unread_messages_updated', handleUpdate);
     
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('unread_messages_updated', handleUpdate);
+    };
   }, [user]);
 
   React.useEffect(() => {

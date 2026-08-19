@@ -47,6 +47,7 @@ const Messages = () => {
         await api.markConversationAsRead(selectedConv.id).catch(err => 
           console.error('Failed to mark conversation as read', err)
         );
+        window.dispatchEvent(new Event('unread_messages_updated'));
       } catch (err) {
         console.error('Failed to load messages:', err);
       } finally {
@@ -71,6 +72,7 @@ const Messages = () => {
       const newMsg = await api.sendMessage(selectedConv.id, messageText);
       setMessages([...messages, newMsg]);
       setMessageText('');
+      window.dispatchEvent(new Event('unread_messages_updated'));
       
       // Update conversation updated_at in the sidebar
       setConversations(convs => 

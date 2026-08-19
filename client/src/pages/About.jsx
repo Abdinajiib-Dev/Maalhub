@@ -70,7 +70,7 @@ const About = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Who We Are</h2>
           <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-            MaalHub connects investors with entrepreneurs, startups, and people with new business ideas. Entrepreneurs can submit projects and request funding, while investors can discover, filter, and submit investment requests for projects that match their goals.
+            We are Abdinajiib Artan Osman and Sumaya Anwar Mumin, two passionate developers from the Faculty of Computer Science and Information Technology. We created MaalHub to connect entrepreneurs with investors and make business opportunities more accessible. Through MaalHub, we aim to create a simple and trusted platform where entrepreneurs can showcase their ideas and investors can discover promising projects.
           </p>
         </div>
 
