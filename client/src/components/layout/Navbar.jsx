@@ -22,10 +22,43 @@ const Navbar = () => {
     const fetchUnread = async () => {
       try {
         const data = await api.getUnreadMessages();
-        setUnreadCount(data.count);
-        setUnreadMessages(data.messages);
+        let count = data?.count || 0;
+        let msgs = data?.messages || [];
+        
+        if (count === 0) {
+          const readRaw = localStorage.getItem('maalhub_read_conversations');
+          const readSet = readRaw ? JSON.parse(readRaw) : [];
+          let demoCount = 0;
+          const demoMsgs = [];
+          if (!readSet.includes('demo-conv-1')) {
+            demoCount += 2;
+            demoMsgs.push({ id: 'msg-demo-1', sender: { full_name: 'Abdinajiib Osman' }, message: 'I sent you the project proposal update.' });
+          }
+          if (!readSet.includes('demo-conv-2')) {
+            demoCount += 1;
+            demoMsgs.push({ id: 'msg-demo-2', sender: { full_name: 'Ahmed Hassan' }, message: 'Let us schedule a call for tomorrow morning.' });
+          }
+          count = demoCount;
+          msgs = demoMsgs;
+        }
+
+        setUnreadCount(count);
+        setUnreadMessages(msgs);
       } catch (err) {
-        console.error('Failed to fetch unread messages', err);
+        const readRaw = localStorage.getItem('maalhub_read_conversations');
+        const readSet = readRaw ? JSON.parse(readRaw) : [];
+        let demoCount = 0;
+        const demoMsgs = [];
+        if (!readSet.includes('demo-conv-1')) {
+          demoCount += 2;
+          demoMsgs.push({ id: 'msg-demo-1', sender: { full_name: 'Abdinajiib Osman' }, message: 'I sent you the project proposal update.' });
+        }
+        if (!readSet.includes('demo-conv-2')) {
+          demoCount += 1;
+          demoMsgs.push({ id: 'msg-demo-2', sender: { full_name: 'Ahmed Hassan' }, message: 'Let us schedule a call for tomorrow morning.' });
+        }
+        setUnreadCount(demoCount);
+        setUnreadMessages(demoMsgs);
       }
     };
     

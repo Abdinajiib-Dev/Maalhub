@@ -37,7 +37,28 @@ router.get('/', requireAuth, async (req, res) => {
       .order('updated_at', { ascending: false });
 
     if (error) throw error;
-    res.json(data);
+
+    // Fetch unread messages per conversation for current user
+    const { data: unreadMsgs } = await supabase
+      .from('messages')
+      .select('conversation_id')
+      .in('conversation_id', conversationIds)
+      .neq('sender_id', userId)
+      .eq('is_read', false);
+
+    const unreadMap = {};
+    if (unreadMsgs) {
+      unreadMsgs.forEach(m => {
+        unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
+      });
+    }
+
+    const conversationsWithUnread = data.map(conv => ({
+      ...conv,
+      unread_count: unreadMap[conv.id] || 0
+    }));
+
+    res.json(conversationsWithUnread);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

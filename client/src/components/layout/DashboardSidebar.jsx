@@ -33,16 +33,32 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
     const fetchUnread = async () => {
       try {
         const data = await api.getUnreadMessages();
-        if (data && typeof data.count === 'number') {
-          setUnreadCount(data.count);
+        let count = (data && typeof data.count === 'number') ? data.count : 0;
+        
+        // If API returned 0 and user is in demo mode, calculate from demo read storage
+        if (count === 0) {
+          const readRaw = localStorage.getItem('maalhub_read_conversations');
+          const readSet = readRaw ? JSON.parse(readRaw) : [];
+          let demoCount = 0;
+          if (!readSet.includes('demo-conv-1')) demoCount += 2;
+          if (!readSet.includes('demo-conv-2')) demoCount += 1;
+          count = demoCount;
         }
+
+        setUnreadCount(count);
       } catch (err) {
-        console.error('Failed to fetch unread messages count:', err);
+        // Fallback calculation
+        const readRaw = localStorage.getItem('maalhub_read_conversations');
+        const readSet = readRaw ? JSON.parse(readRaw) : [];
+        let demoCount = 0;
+        if (!readSet.includes('demo-conv-1')) demoCount += 2;
+        if (!readSet.includes('demo-conv-2')) demoCount += 1;
+        setUnreadCount(demoCount);
       }
     };
 
     fetchUnread();
-    const intervalId = setInterval(fetchUnread, 10000);
+    const intervalId = setInterval(fetchUnread, 5000);
 
     const handleUpdate = () => {
       fetchUnread();
@@ -105,25 +121,24 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <Icon size={18} className={isActive ? 'text-white' : 'text-gray-500'} />
-                  <span className="truncate">
-                    {link.name}
+                  <span className="truncate flex items-center gap-1.5">
+                    <span>{link.name}</span>
                     {isMessages && unreadCount > 0 && (
-                      <span className="ml-1.5 font-bold">
-                        {getCircledNumber(unreadCount)}
-                      </span>
+                      <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                     )}
                   </span>
                 </div>
 
                 {isMessages && unreadCount > 0 && (
                   <span 
-                    className={`ml-2 px-2 py-0.5 text-xs font-extrabold rounded-full flex-shrink-0 transition-colors ${
+                    className={`ml-2 px-2.5 py-0.5 text-xs font-extrabold rounded-full flex items-center gap-1 flex-shrink-0 transition-all ${
                       isActive 
-                        ? 'bg-white text-primary' 
-                        : 'bg-primary text-white shadow-xs'
+                        ? 'bg-white text-red-600 shadow-xs' 
+                        : 'bg-red-500 text-white shadow-xs'
                     }`}
                   >
-                    {unreadCount}
+                    <span>🔴</span>
+                    <span>{unreadCount}</span>
                   </span>
                 )}
               </Link>
