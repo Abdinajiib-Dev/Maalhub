@@ -1,7 +1,12 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// .env is in the server root (two levels up from src/utils)
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 // Create a transporter using your custom SMTP details
 const transporter = nodemailer.createTransport({
