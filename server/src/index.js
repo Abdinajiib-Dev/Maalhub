@@ -33,7 +33,9 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(morgan('dev'));
+app.use(morgan('dev', {
+  skip: (req, res) => req.originalUrl === '/api/messages/unread' || req.originalUrl === '/api/health'
+}));
 app.use(express.json());
 
 // Serve static frontend files
