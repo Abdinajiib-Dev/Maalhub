@@ -2,11 +2,11 @@
   "name": "maalhub-monorepo",
   "type": "module",
   "private": true,
+  "scripts": {
+    "start": "npm start --workspace=server"
+  },
   "workspaces": [
     "client",
     "server"
-  ],
-  "scripts": {
-    "start": "npm start --workspace=server"
-  }
+  ]
 }
