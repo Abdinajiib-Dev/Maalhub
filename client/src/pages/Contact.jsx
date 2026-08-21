@@ -14,14 +14,31 @@ const Contact = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate form submission
     setStatus('sending');
-    setTimeout(() => {
+    
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
+      const response = await fetch(`${apiUrl}/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 1500);
+    } catch (error) {
+      console.error('Contact form error:', error);
+      alert('Failed to send message. Please try again later.');
+      setStatus('');
+    }
   };
 
   return (

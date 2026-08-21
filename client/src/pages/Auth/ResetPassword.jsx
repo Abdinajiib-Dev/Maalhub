@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 import { Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const ResetPassword = () => {
@@ -10,6 +11,7 @@ const ResetPassword = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   // The access token is automatically parsed from the URL hash by Supabase Auth
   // on page load, setting the session.
@@ -36,7 +38,10 @@ const ResetPassword = () => {
 
       if (updateError) throw updateError;
 
-      setSuccess('Password updated successfully! Redirecting...');
+      // Force the user to log out so they must log in with their new password
+      await signOut();
+
+      setSuccess('Password updated successfully! Please log in with your new password. Redirecting...');
       setTimeout(() => {
         navigate('/login');
       }, 3000);

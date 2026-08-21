@@ -9,6 +9,7 @@ import ProjectDetails from './pages/ProjectDetails';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ResetPassword from './pages/Auth/ResetPassword';
+import ForgotPassword from './pages/Auth/ForgotPassword';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Contact from './pages/Contact';
@@ -49,6 +50,7 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="terms" element={<Terms />} />
           <Route path="privacy" element={<Privacy />} />
           <Route path="contact" element={<Contact />} />

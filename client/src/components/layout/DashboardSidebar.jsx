@@ -44,7 +44,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
     };
 
     fetchUnread();
-    const intervalId = setInterval(fetchUnread, 5000);
+    const intervalId = setInterval(fetchUnread, 60000); // 60 seconds
 
     const handleUpdate = () => {
       fetchUnread();

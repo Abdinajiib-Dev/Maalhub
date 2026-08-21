@@ -12,6 +12,7 @@ import projectsRoutes from './routes/projects.js';
 import savedProjectsRoutes from './routes/savedProjects.js';
 import investmentRequestsRoutes from './routes/investmentRequests.js';
 import messagesRoutes from './routes/messages.js';
+import contactRoutes from './routes/contact.js';
 
 dotenv.config();
 
@@ -41,7 +42,7 @@ app.use(express.static(clientDistPath));
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // limit each IP to 1000 requests per windowMs (increased for polling)
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -53,6 +54,7 @@ app.use('/api/projects', projectsRoutes);
 app.use('/api/saved-projects', savedProjectsRoutes);
 app.use('/api/investment-requests', investmentRequestsRoutes);
 app.use('/api/messages', messagesRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Basic health check
 app.get('/api/health', (req, res) => {

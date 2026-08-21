@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, LineChart, ChevronDown, LayoutDashboard, LogOut } from 'lucide-react';
+import { Menu, X, LineChart, ChevronDown, LayoutDashboard, LogOut, Home, Kanban, Users, MessageCircle, User, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../lib/api';
 
@@ -31,7 +31,7 @@ const Navbar = () => {
     };
     
     fetchUnread();
-    const intervalId = setInterval(fetchUnread, 10000);
+    const intervalId = setInterval(fetchUnread, 60000); // 60 seconds
 
     const handleUpdate = () => {
       fetchUnread();
@@ -69,7 +69,18 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const navLinks = [
+  const isDashboard = location.pathname.includes('/entrepreneur') || location.pathname.includes('/investor');
+  const basePath = profile?.role === 'entrepreneur' ? '/entrepreneur' : '/investor';
+
+  const navLinks = isDashboard ? [
+    { name: 'Home', path: '/', icon: Home },
+    { name: 'Dashboard', path: `${basePath}/dashboard`, icon: LayoutDashboard },
+    { name: profile?.role === 'entrepreneur' ? 'My Projects' : 'Explore Projects', path: `${basePath}/projects`, icon: Kanban },
+    { name: 'Investment Requests', path: `${basePath}/requests`, icon: Users },
+    { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
+    { name: 'Profile', path: `${basePath}/profile`, icon: User },
+    { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
+  ] : [
     { name: 'Home', path: '/' },
     { name: 'Projects', path: '/projects' },
     { name: 'About', path: '/about' },
@@ -95,23 +106,25 @@ const Navbar = () => {
           </div>
 
           {/* Center: Navigation */}
-          <div className="hidden md:flex flex-1 justify-center">
-            <div className="flex space-x-6 sm:space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`text-sm font-medium transition-all ${
-                    location.pathname === link.path
-                      ? 'text-primary border-b-2 border-primary pb-1'
-                      : 'text-gray-500 hover:text-primary pb-1 border-b-2 border-transparent hover:border-primary/30'
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
+          {!isDashboard && (
+            <div className="hidden md:flex flex-1 justify-center">
+              <div className="flex space-x-6 sm:space-x-8">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    to={link.path}
+                    className={`text-sm font-medium transition-all ${
+                      location.pathname === link.path
+                        ? 'text-primary border-b-2 border-primary pb-1'
+                        : 'text-gray-500 hover:text-primary pb-1 border-b-2 border-transparent hover:border-primary/30'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Right: Actions */}
           <div className="hidden md:flex items-center space-x-4">
@@ -247,49 +260,92 @@ const Navbar = () => {
               {isOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
             </button>
           </div>
+
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu overlay */}
       {isOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white">
-          <div className="px-4 pt-2 pb-4 space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  location.pathname === link.path
-                    ? 'text-primary bg-primary/5'
-                    : 'text-gray-600 hover:text-primary hover:bg-gray-50'
-                }`}
-                onClick={() => setIsOpen(false)}
-              >
-                {link.name}
-              </Link>
-            ))}
-            <div className="pt-4 border-t border-gray-100 flex flex-col space-y-2">
-              {!user ? (
-                <>
-                  <Link to="/login" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text border border-gray-200 text-center">Log In</Link>
-                  <Link to="/register" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary text-center">Sign Up</Link>
-                </>
-              ) : (
-                <>
+        <div 
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden transition-all duration-300"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Mobile menu drawer */}
+      <div 
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-20 flex items-center justify-between px-4 border-b border-gray-100">
+          <div className="flex items-center space-x-2">
+            <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center shadow-sm">
+              <img src="/Maalhub2.jpg" alt="MaalHub Logo" className="h-full w-full object-cover scale-125" />
+            </div>
+            <span className="text-xl font-bold tracking-tight">
+              <span className="text-text">Maal</span>
+              <span className="text-primary">Hub</span>
+            </span>
+          </div>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+          >
+            <span className="sr-only">Close menu</span>
+            <X className="block h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="px-4 py-4 space-y-2 overflow-y-auto flex-1">
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+            <Link
+              key={link.name}
+              to={link.path}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
+                location.pathname === link.path
+                  ? 'text-primary bg-primary/5 shadow-sm'
+                  : 'text-gray-600 hover:text-primary hover:bg-gray-50'
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              {Icon && <Icon size={20} className={location.pathname === link.path ? 'text-primary' : 'text-gray-400'} />}
+              <span>{link.name}</span>
+            </Link>
+          )})}
+          <div className="pt-4 mt-2 border-t border-gray-100 flex flex-col space-y-3">
+            {!user ? (
+              <>
+                <Link to="/login" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md text-base font-medium text-text border border-gray-200 text-center hover:bg-gray-50 transition-colors">Log In</Link>
+                <Link to="/register" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md text-base font-medium text-white bg-primary text-center hover:bg-[#7a5338] transition-colors">Sign Up</Link>
+              </>
+            ) : (
+              <>
+                {isDashboard ? (
+                  <Link 
+                    to={profile?.role === 'entrepreneur' ? '/entrepreneur/create-project' : '/investor/projects'} 
+                    onClick={() => setIsOpen(false)}
+                    className="block px-3 py-2.5 rounded-md text-base font-medium text-white bg-primary text-center hover:bg-[#7a5338] transition-colors shadow-sm"
+                  >
+                    {profile?.role === 'entrepreneur' ? 'Create Project' : 'Browse Projects'}
+                  </Link>
+                ) : (
                   <Link 
                     to={profile?.role === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'} 
                     onClick={() => setIsOpen(false)}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-primary border border-primary/20 text-center"
+                    className="block px-3 py-2.5 rounded-md text-base font-medium text-white bg-primary text-center hover:bg-[#7a5338] transition-colors shadow-sm"
                   >
                     Dashboard
                   </Link>
-                  <button onClick={() => { handleSignOut(); setIsOpen(false); }} className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-red-600 border border-gray-200">Sign Out</button>
-                </>
-              )}
-            </div>
+                )}
+                <button onClick={() => { handleSignOut(); setIsOpen(false); }} className="block w-full text-center px-3 py-2.5 rounded-md text-base font-medium text-red-600 border border-gray-200 hover:bg-red-50 transition-colors mt-2">Sign Out</button>
+              </>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </nav>
   );
 };
