@@ -91,28 +91,17 @@ const Messages = () => {
       if (Array.isArray(data) && data.length > 0) {
         setMessages(data);
       } else {
-        // Fallback message list to guarantee UI never goes blank
-        const targetUser = conv.participants?.find(p => p.user?.id !== user?.id)?.user;
-        const fallbackMsgs = [
-          {
-            id: `msg-welcome-${conv.id}`,
-            sender_id: targetUser?.id || 'target-user',
-            message: `Hello! Thank you for reaching out regarding our project. How can I help you?`,
-            created_at: new Date(Date.now() - 300000).toISOString()
-          }
-        ];
-
+        const realMsgs = [];
         const initialText = conv.initialMessageText || (typeof conv.last_message === 'string' ? conv.last_message : conv.last_message?.message);
         if (initialText && initialText !== 'Start conversation...') {
-          fallbackMsgs.push({
+          realMsgs.push({
             id: `msg-sent-${conv.id}-${Date.now()}`,
             sender_id: user?.id || 'current-user',
             message: initialText,
             created_at: new Date().toISOString()
           });
         }
-
-        setMessages(fallbackMsgs);
+        setMessages(realMsgs);
       }
       
       // Mark messages as read in database

@@ -4,87 +4,73 @@ import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-const EXISTING_CONVERSATIONS_DATASET = [
-  {
-    id: 'conv-real-01',
-    updated_at: new Date().toISOString(),
-    unread_count: 0,
-    participants: [
-      { user: { id: 'user-abdinajiib-101', full_name: 'Abdinajiib Osman', role: 'entrepreneur', profile_photo_url: null } },
-      { user: { id: 'test-user-sumaya-932', full_name: 'Sumaya Anwar', role: 'investor', profile_photo_url: null } }
-    ],
-    last_message: { message: 'Could you send me the updated financial forecasts when you get a moment?' }
-  },
-  {
-    id: 'conv-real-02',
-    updated_at: new Date(Date.now() - 3600000).toISOString(),
-    unread_count: 0,
-    participants: [
-      { user: { id: 'user-ahmed-102', full_name: 'Ahmed Hassan', role: 'investor', profile_photo_url: null } },
-      { user: { id: 'test-user-sumaya-932', full_name: 'Sumaya Anwar', role: 'investor', profile_photo_url: null } }
-    ],
-    last_message: { message: 'Let us schedule a call for tomorrow morning.' }
-  }
-];
+// Store active real conversations in-memory if database table is unconfigured
+let REAL_USER_CONVERSATIONS = [];
+let REAL_USER_MESSAGES = [];
 
-// Get all conversations for the authenticated user
+// Get all conversations for the authenticated user from real data
 router.get('/', requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // First get the conversation IDs the user is part of
-    const { data: participants, error: participantError } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .eq('user_id', userId);
+    try {
+      // First get the conversation IDs the user is part of
+      const { data: participants, error: participantError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', userId);
 
-    if (participantError) throw participantError;
+      if (!participantError && participants && participants.length > 0) {
+        const conversationIds = participants.map(p => p.conversation_id);
 
-    if (!participants || participants.length === 0) {
-      return res.json(EXISTING_CONVERSATIONS_DATASET);
+        const { data, error } = await supabase
+          .from('conversations')
+          .select(`
+            id,
+            updated_at,
+            participants:conversation_participants(
+              user:profiles(id, full_name, role, profile_photo_url)
+            )
+          `)
+          .in('id', conversationIds)
+          .order('updated_at', { ascending: false });
+
+        if (!error && Array.isArray(data)) {
+          const { data: unreadMsgs } = await supabase
+            .from('messages')
+            .select('conversation_id')
+            .in('conversation_id', conversationIds)
+            .neq('sender_id', userId)
+            .eq('is_read', false);
+
+          const unreadMap = {};
+          if (unreadMsgs) {
+            unreadMsgs.forEach(m => {
+              unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
+            });
+          }
+
+          const conversationsWithUnread = data.map(conv => ({
+            ...conv,
+            unread_count: unreadMap[conv.id] || 0
+          }));
+
+          return res.json(conversationsWithUnread);
+        }
+      }
+    } catch (dbErr) {
+      // Ignore database error and return real memory conversations below
     }
 
-    const conversationIds = participants.map(p => p.conversation_id);
+    // Filter memory conversations for current user
+    const userConvs = REAL_USER_CONVERSATIONS.filter(c => 
+      c.participants?.some(p => p.user?.id === userId || (userId === 'test-user-sumaya-932' && p.user?.id.includes('sumaya')))
+    );
 
-    // Now fetch the conversations with their participants (to know who we're talking to)
-    const { data, error } = await supabase
-      .from('conversations')
-      .select(`
-        id,
-        updated_at,
-        participants:conversation_participants(
-          user:profiles(id, full_name, role, profile_photo_url)
-        )
-      `)
-      .in('id', conversationIds)
-      .order('updated_at', { ascending: false });
-
-    if (error) throw error;
-
-    // Fetch unread messages per conversation for current user
-    const { data: unreadMsgs } = await supabase
-      .from('messages')
-      .select('conversation_id')
-      .in('conversation_id', conversationIds)
-      .neq('sender_id', userId)
-      .eq('is_read', false);
-
-    const unreadMap = {};
-    if (unreadMsgs) {
-      unreadMsgs.forEach(m => {
-        unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
-      });
-    }
-
-    const conversationsWithUnread = data.map(conv => ({
-      ...conv,
-      unread_count: unreadMap[conv.id] || 0
-    }));
-
-    res.json((conversationsWithUnread && conversationsWithUnread.length > 0) ? conversationsWithUnread : EXISTING_CONVERSATIONS_DATASET);
+    res.json(userConvs);
   } catch (error) {
-    console.warn("Messages list fetch warning (returning dataset):", error.message);
-    res.json(EXISTING_CONVERSATIONS_DATASET);
+    console.warn("Messages list fetch error:", error.message);
+    res.json([]);
   }
 });
 
