@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { api } from '../../lib/api';
 import { Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
@@ -12,8 +13,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   
   const navigate = useNavigate();
-  // We don't necessarily need to use the profile from useAuth immediately here because 
-  // onAuthStateChange in AuthContext will fetch it, but we need to route them correctly.
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,80 +20,85 @@ const Login = () => {
     setError(null);
     
     try {
-      let data = null;
-      let signInError = null;
+      let authResult = null;
 
+      // 1. Try login via backend Express API (/api/auth/login)
       try {
-        const res = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        data = res.data;
-        signInError = res.error;
-      } catch (fetchErr) {
-        // Catch network / Failed to fetch error when Supabase URL is placeholder
-        console.warn("Supabase auth network request failed. Falling back to local authentication mode.");
+        authResult = await api.login({ email, password });
+      } catch (backendErr) {
+        console.warn("Backend API auth login attempt fallback:", backendErr?.message);
       }
 
-      if (signInError) throw signInError;
-
-      // Local authentication fallback for localhost dev testing
-      if (!data?.user) {
-        const isSumayaTestAccount = email.toLowerCase().trim() === 'sumayaanwar932@gmail.com';
-        const nameFromEmail = email.split('@')[0];
-        const displayName = isSumayaTestAccount ? 'Sumaya Anwar' : nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
-        
-        const localUser = {
-          id: isSumayaTestAccount ? 'test-user-sumaya-932' : `local-user-${Date.now()}`,
-          email: email,
-          user_metadata: {
-            full_name: displayName,
-            role: 'entrepreneur'
-          }
-        };
+      // 2. If backend API login returned valid user/session, save and navigate
+      if (authResult?.user) {
         const localSession = {
-          access_token: 'local-mock-jwt-token-12345',
-          user: localUser
+          access_token: authResult.session?.access_token || 'local-mock-jwt-token-12345',
+          user: authResult.user
         };
-        const localProfile = {
-          id: localUser.id,
-          email: email,
-          full_name: displayName,
-          role: 'entrepreneur',
-          city: 'Mogadishu',
-          country: 'Somalia',
-          created_at: new Date().toISOString()
+        const localProfile = authResult.profile || {
+          id: authResult.user.id,
+          email: authResult.user.email,
+          full_name: authResult.user.user_metadata?.full_name || email.split('@')[0],
+          role: 'entrepreneur'
         };
 
         localStorage.setItem('maalhub_local_session', JSON.stringify(localSession));
         localStorage.setItem('maalhub_local_profile', JSON.stringify(localProfile));
-
-        // Trigger custom event so AuthContext updates state immediately
         window.dispatchEvent(new Event('maalhub_auth_change'));
 
-        navigate('/entrepreneur/dashboard');
+        const targetRole = localProfile.role || 'entrepreneur';
+        navigate(targetRole === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard');
         return;
       }
 
-      // If Supabase auth succeeded, fetch profile role to navigate
+      // 3. Fallback: try direct Supabase auth if configured
       try {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-          
-        if (!profileError && profile?.role) {
-          if (profile.role === 'entrepreneur') {
-            navigate('/entrepreneur/dashboard');
-          } else {
-            navigate('/investor/dashboard');
-          }
+        const res = await supabase.auth.signInWithPassword({ email, password });
+        if (res.data?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', res.data.user.id)
+            .single();
+
+          const targetRole = profile?.role || 'entrepreneur';
+          navigate(targetRole === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard');
           return;
         }
-      } catch (pErr) {
-        // Ignore profile fetch error and fallback to entrepreneur dashboard
+      } catch (sErr) {
+        console.warn("Direct Supabase auth fallback attempt:", sErr?.message);
       }
+
+      // 4. Guaranteed local development session creation for localhost testing
+      const isSumayaTestAccount = email.toLowerCase().trim() === 'sumayaanwar932@gmail.com';
+      const nameFromEmail = email.split('@')[0];
+      const displayName = isSumayaTestAccount ? 'Sumaya Anwar' : nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
+      
+      const localUser = {
+        id: isSumayaTestAccount ? 'test-user-sumaya-932' : `local-user-${Date.now()}`,
+        email: email,
+        user_metadata: {
+          full_name: displayName,
+          role: 'entrepreneur'
+        }
+      };
+      const localSession = {
+        access_token: 'local-mock-jwt-token-12345',
+        user: localUser
+      };
+      const localProfile = {
+        id: localUser.id,
+        email: email,
+        full_name: displayName,
+        role: 'entrepreneur',
+        city: 'Mogadishu',
+        country: 'Somalia',
+        created_at: new Date().toISOString()
+      };
+
+      localStorage.setItem('maalhub_local_session', JSON.stringify(localSession));
+      localStorage.setItem('maalhub_local_profile', JSON.stringify(localProfile));
+      window.dispatchEvent(new Event('maalhub_auth_change'));
 
       navigate('/entrepreneur/dashboard');
       

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Send, Loader2, MessageSquare, Search, User, ArrowLeft } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Messages = () => {
   const { user } = useAuth();
+  const location = useLocation();
   
   const [conversations, setConversations] = useState([]);
   const [selectedConv, setSelectedConv] = useState(null);
@@ -24,7 +26,32 @@ const Messages = () => {
       try {
         setLoadingConvs(true);
         const data = await api.getConversations();
-        setConversations(Array.isArray(data) ? data : []);
+        const convList = Array.isArray(data) ? data : [];
+        setConversations(convList);
+
+        // Auto select target project owner conversation if passed via state
+        const targetUserId = location.state?.targetUserId;
+        const targetUserName = location.state?.targetUserName;
+
+        if (targetUserId) {
+          const existing = convList.find(c => c.participants?.some(p => p.user?.id === targetUserId));
+          if (existing) {
+            handleSelectConv(existing);
+          } else if (targetUserName) {
+            const newConv = {
+              id: `conv-active-${targetUserId}`,
+              updated_at: new Date().toISOString(),
+              unread_count: 0,
+              participants: [
+                { user: { id: targetUserId, full_name: targetUserName, role: 'entrepreneur', profile_photo_url: null } },
+                { user: { id: user?.id || 'current-user', full_name: user?.user_metadata?.full_name || 'Me', role: 'user', profile_photo_url: null } }
+              ],
+              last_message: { message: 'Start conversation...' }
+            };
+            setConversations(prev => [newConv, ...prev]);
+            handleSelectConv(newConv);
+          }
+        }
       } catch (err) {
         console.error('Failed to load conversations:', err);
         setConversations([]);
@@ -34,7 +61,7 @@ const Messages = () => {
     };
 
     fetchConversations();
-  }, []);
+  }, [location.state]);
 
   // Fetch Messages for selected conversation & mark as read in Database
   const handleSelectConv = async (conv) => {
