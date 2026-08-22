@@ -4,57 +4,6 @@ import { Search, MapPin, Briefcase, Loader2, ArrowRight, MessageSquare, Send, Fi
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 
-const DEFAULT_PROJECTS_FALLBACK = [
-  {
-    id: 'proj-greenagri-01',
-    entrepreneur_id: 'test-user-sumaya-932',
-    project_name: 'GreenAgri Tech',
-    business_name: 'GreenAgri Innovations Ltd',
-    industry: 'AgriTech',
-    startup_stage: 'Seed',
-    location: 'Mogadishu, Somalia',
-    funding_goal: 75000,
-    project_description: 'Solar-powered smart irrigation and automated greenhouse management system designed for East African agricultural climate conditions.',
-    entrepreneur: { full_name: 'Sumaya Anwar', city: 'Mogadishu', country: 'Somalia' }
-  },
-  {
-    id: 'proj-sompay-02',
-    entrepreneur_id: 'user-ahmed-102',
-    project_name: 'SomPay Solutions',
-    business_name: 'SomPay Financial Technologies',
-    industry: 'FinTech',
-    startup_stage: 'Growth',
-    location: 'Hargeisa, Somalia',
-    funding_goal: 150000,
-    project_description: 'Unified digital payments gateway and merchant POS terminal network enabling cross-border commerce across East Africa.',
-    entrepreneur: { full_name: 'Ahmed Hassan', city: 'Hargeisa', country: 'Somalia' }
-  },
-  {
-    id: 'proj-ecoclean-03',
-    entrepreneur_id: 'test-user-sumaya-932',
-    project_name: 'EcoClean Energy',
-    business_name: 'EcoClean Waste-to-Energy Ltd',
-    industry: 'CleanTech',
-    startup_stage: 'Early Stage',
-    location: 'Kismayo, Somalia',
-    funding_goal: 120000,
-    project_description: 'Converting municipal organic waste into high-grade biogas and organic bio-fertilizer for sustainable power generation.',
-    entrepreneur: { full_name: 'Sumaya Anwar', city: 'Kismayo', country: 'Somalia' }
-  },
-  {
-    id: 'proj-healthpoint-04',
-    entrepreneur_id: 'user-abdinajiib-101',
-    project_name: 'HealthPoint Telemedicine',
-    business_name: 'HealthPoint Digital Health Ltd',
-    industry: 'HealthTech',
-    startup_stage: 'Seed',
-    location: 'Mogadishu, Somalia',
-    funding_goal: 90000,
-    project_description: 'AI-assisted mobile telemedicine and electronic health record platform connecting remote patients with specialized doctors.',
-    entrepreneur: { full_name: 'Abdinajiib Osman', city: 'Mogadishu', country: 'Somalia' }
-  }
-];
-
 const Projects = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -80,14 +29,10 @@ const Projects = () => {
       try {
         setLoading(true);
         const data = await api.getProjects();
-        if (Array.isArray(data) && data.length > 0) {
-          setProjects(data);
-        } else {
-          setProjects(DEFAULT_PROJECTS_FALLBACK);
-        }
+        setProjects(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.warn('Projects API fetch error (using fallback):', err);
-        setProjects(DEFAULT_PROJECTS_FALLBACK);
+        console.warn('Projects API fetch error:', err);
+        setProjects([]);
       } finally {
         setLoading(false);
       }
