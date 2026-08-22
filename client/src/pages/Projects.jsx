@@ -46,18 +46,10 @@ const Projects = () => {
       navigate('/login');
       return;
     }
-    const ownerName = project.entrepreneur?.full_name || project.business_name || 'Project Owner';
     setSelectedProjectForMessage(project);
     setMessageText('');
     setSendStatus({ type: '', msg: '' });
-    setModalMessages([
-      {
-        id: 'welcome-1',
-        text: `Hello! Thanks for reaching out regarding ${project.project_name}. Send a message directly to ${ownerName} below.`,
-        isMe: false,
-        time: 'Just now'
-      }
-    ]);
+    setModalMessages([]);
   };
 
   const handleSendMessageToOwner = async (e) => {
@@ -270,21 +262,28 @@ const Projects = () => {
             </div>
 
             {/* Chat Messages Body */}
-            <div className="p-4 sm:p-5 flex-1 overflow-y-auto bg-gray-50/50 space-y-3">
-              {modalMessages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed ${
-                    msg.isMe 
-                      ? 'bg-primary text-white rounded-br-none shadow-2xs' 
-                      : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-2xs'
-                  }`}>
-                    <p>{msg.text}</p>
-                    <span className={`text-[9px] block mt-1 text-right ${msg.isMe ? 'text-white/80' : 'text-gray-400'}`}>
-                      {msg.time}
-                    </span>
-                  </div>
+            <div className="p-4 sm:p-5 flex-1 overflow-y-auto bg-gray-50/50 space-y-3 min-h-[140px] flex flex-col justify-end">
+              {modalMessages.length === 0 ? (
+                <div className="text-center py-6 text-gray-400 text-xs my-auto">
+                  <MessageSquare className="w-6 h-6 mx-auto mb-1.5 stroke-[1.5] text-gray-300" />
+                  <p>Type your message below to send a direct message to the project owner.</p>
                 </div>
-              ))}
+              ) : (
+                modalMessages.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed ${
+                      msg.isMe 
+                        ? 'bg-primary text-white rounded-br-none shadow-2xs' 
+                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-2xs'
+                    }`}>
+                      <p>{msg.text}</p>
+                      <span className={`text-[9px] block mt-1 text-right ${msg.isMe ? 'text-white/80' : 'text-gray-400'}`}>
+                        {msg.time}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Status & Input Area */}
