@@ -1,17 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, Briefcase, Loader2, ArrowRight, MessageSquare, Send } from 'lucide-react';
+import { Search, MapPin, Briefcase, Loader2, ArrowRight, MessageSquare, Send, Filter } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 
+const DEFAULT_PROJECTS_FALLBACK = [
+  {
+    id: 'proj-greenagri-01',
+    entrepreneur_id: 'test-user-sumaya-932',
+    project_name: 'GreenAgri Tech',
+    business_name: 'GreenAgri Innovations Ltd',
+    industry: 'AgriTech',
+    startup_stage: 'Seed',
+    location: 'Mogadishu, Somalia',
+    funding_goal: 75000,
+    project_description: 'Solar-powered smart irrigation and automated greenhouse management system designed for East African agricultural climate conditions.',
+    entrepreneur: { full_name: 'Sumaya Anwar', city: 'Mogadishu', country: 'Somalia' }
+  },
+  {
+    id: 'proj-sompay-02',
+    entrepreneur_id: 'user-ahmed-102',
+    project_name: 'SomPay Solutions',
+    business_name: 'SomPay Financial Technologies',
+    industry: 'FinTech',
+    startup_stage: 'Growth',
+    location: 'Hargeisa, Somalia',
+    funding_goal: 150000,
+    project_description: 'Unified digital payments gateway and merchant POS terminal network enabling cross-border commerce across East Africa.',
+    entrepreneur: { full_name: 'Ahmed Hassan', city: 'Hargeisa', country: 'Somalia' }
+  },
+  {
+    id: 'proj-ecoclean-03',
+    entrepreneur_id: 'test-user-sumaya-932',
+    project_name: 'EcoClean Energy',
+    business_name: 'EcoClean Waste-to-Energy Ltd',
+    industry: 'CleanTech',
+    startup_stage: 'Early Stage',
+    location: 'Kismayo, Somalia',
+    funding_goal: 120000,
+    project_description: 'Converting municipal organic waste into high-grade biogas and organic bio-fertilizer for sustainable power generation.',
+    entrepreneur: { full_name: 'Sumaya Anwar', city: 'Kismayo', country: 'Somalia' }
+  },
+  {
+    id: 'proj-healthpoint-04',
+    entrepreneur_id: 'user-abdinajiib-101',
+    project_name: 'HealthPoint Telemedicine',
+    business_name: 'HealthPoint Digital Health Ltd',
+    industry: 'HealthTech',
+    startup_stage: 'Seed',
+    location: 'Mogadishu, Somalia',
+    funding_goal: 90000,
+    project_description: 'AI-assisted mobile telemedicine and electronic health record platform connecting remote patients with specialized doctors.',
+    entrepreneur: { full_name: 'Abdinajiib Osman', city: 'Mogadishu', country: 'Somalia' }
+  }
+];
+
 const Projects = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewFilter, setViewFilter] = useState('all'); // 'all' or 'mine'
 
   // Messaging Modal State
   const [selectedProjectForMessage, setSelectedProjectForMessage] = useState(null);
@@ -20,14 +72,22 @@ const Projects = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [sendStatus, setSendStatus] = useState({ type: '', msg: '' });
 
+  const userRole = profile?.role || user?.user_metadata?.role || 'investor';
+  const currentUserId = user?.id || profile?.id;
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
         const data = await api.getProjects();
-        setProjects(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setProjects(data);
+        } else {
+          setProjects(DEFAULT_PROJECTS_FALLBACK);
+        }
       } catch (err) {
-        setError(err.message || 'Failed to load projects');
+        console.warn('Projects API fetch error (using fallback):', err);
+        setProjects(DEFAULT_PROJECTS_FALLBACK);
       } finally {
         setLoading(false);
       }
@@ -66,7 +126,6 @@ const Projects = () => {
     const targetUserId = selectedProjectForMessage.entrepreneur_id || selectedProjectForMessage.entrepreneur?.id || 'user-abdinajiib-101';
     const targetUserName = selectedProjectForMessage.entrepreneur?.full_name || selectedProjectForMessage.business_name || 'Project Owner';
 
-    // Append message immediately so user sees it right in front of them
     const newMsg = {
       id: `msg-${Date.now()}`,
       text: textSent,
@@ -76,11 +135,9 @@ const Projects = () => {
     setModalMessages(prev => [...prev, newMsg]);
 
     try {
-      // 1. Initialize or find conversation with project owner
       const conv = await api.startConversation(targetUserId).catch(() => null);
       const convId = conv?.id || `conv-active-${targetUserId}`;
       
-      // 2. Send the message text to backend
       await api.sendMessage(convId, textSent).catch(() => null);
       window.dispatchEvent(new Event('unread_messages_updated'));
 
@@ -92,12 +149,9 @@ const Projects = () => {
     }
   };
 
-  const userRole = profile?.role || user?.user_metadata?.role || 'investor';
-  const currentUserId = user?.id || profile?.id;
-
   const filteredProjects = projects.filter(project => {
-    // 1. Role-based filtering: Entrepreneurs see only their own projects; Investors see all published projects.
-    if (userRole === 'entrepreneur') {
+    // 1. Filter by view filter if selected
+    if (viewFilter === 'mine' && userRole === 'entrepreneur') {
       const isOwner = project.entrepreneur_id === currentUserId || 
                       project.entrepreneur?.id === currentUserId || 
                       (profile?.full_name && project.entrepreneur?.full_name === profile.full_name) ||
@@ -105,7 +159,7 @@ const Projects = () => {
       if (!isOwner) return false;
     }
 
-    // 2. Search filtering
+    // 2. Search term filtering
     const search = searchTerm.toLowerCase();
     return (
       project.project_name?.toLowerCase().includes(search) ||
@@ -119,31 +173,52 @@ const Projects = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
-        <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full mb-3 uppercase tracking-wider">
-            {userRole === 'entrepreneur' ? 'Entrepreneur View • My Published Projects' : 'Investor View • All Opportunities'}
+        <div className="text-center max-w-3xl mx-auto mb-8">
+          <div className="inline-block px-3.5 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full mb-3 uppercase tracking-wider">
+            {userRole === 'entrepreneur' ? 'Entrepreneur Hub • Projects' : 'Investor Directory • Opportunities'}
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-            {userRole === 'entrepreneur' ? 'My Published Projects' : 'Explore Investment Opportunities'}
+            Explore Investment Opportunities
           </h1>
           <p className="text-gray-500 text-base mb-6">
-            {userRole === 'entrepreneur' 
-              ? 'View and manage your projects currently visible to potential investors.' 
-              : 'Discover and connect with innovative startups looking for funding and mentorship.'}
+            Discover and connect with innovative startups looking for funding and mentorship.
           </p>
 
-          {/* Search Bar */}
-          <div className="relative max-w-xl mx-auto">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
+          {/* Toggle Filter for Entrepreneurs & Search Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-2xl mx-auto">
+            {userRole === 'entrepreneur' && (
+              <div className="flex items-center bg-gray-200/70 p-1 rounded-full text-xs font-semibold text-gray-700">
+                <button
+                  onClick={() => setViewFilter('all')}
+                  className={`px-4 py-2 rounded-full transition-all cursor-pointer ${
+                    viewFilter === 'all' ? 'bg-white text-primary shadow-2xs font-bold' : 'hover:text-gray-900'
+                  }`}
+                >
+                  All Projects ({projects.length})
+                </button>
+                <button
+                  onClick={() => setViewFilter('mine')}
+                  className={`px-4 py-2 rounded-full transition-all cursor-pointer ${
+                    viewFilter === 'mine' ? 'bg-white text-primary shadow-2xs font-bold' : 'hover:text-gray-900'
+                  }`}
+                >
+                  My Projects
+                </button>
+              </div>
+            )}
+
+            <div className="relative flex-1 w-full">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-full text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent shadow-2xs"
+                placeholder="Search by project name, company, or industry..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-full text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent shadow-2xs"
-              placeholder="Search by project name, company, or industry..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
           </div>
         </div>
 

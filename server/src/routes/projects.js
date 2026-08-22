@@ -132,13 +132,12 @@ const EXISTING_PROJECTS_DATASET = [
   }
 ];
 
-// Get published projects (Investors see all, Entrepreneurs see their own)
+// Get published projects (Returns all published projects; supports mine=true for user's own projects)
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const { page, limit } = req.query;
+    const { page, limit, mine } = req.query;
     const { from, to } = getPagination(page, limit);
     const userId = req.user?.id;
-    const userRole = req.user?.role || req.user?.user_metadata?.role || 'investor';
 
     let query = supabase
       .from('projects')
@@ -147,7 +146,7 @@ router.get('/', requireAuth, async (req, res, next) => {
         entrepreneur:profiles!projects_entrepreneur_id_fkey(full_name, city, country, profile_photo_url)
       `, { count: 'exact' });
 
-    if (userRole === 'entrepreneur' && userId) {
+    if (mine === 'true' && userId) {
       query = query.eq('entrepreneur_id', userId);
     } else {
       query = query.eq('status', 'Published');
@@ -157,34 +156,29 @@ router.get('/', requireAuth, async (req, res, next) => {
       .order('created_at', { ascending: false })
       .range(from, to);
 
-    // Fallback dataset filtering by role
-    let filteredDataset = EXISTING_PROJECTS_DATASET;
-    if (userRole === 'entrepreneur' && userId) {
-      filteredDataset = EXISTING_PROJECTS_DATASET.filter(p => 
-        p.entrepreneur_id === userId || p.entrepreneur_id === 'test-user-sumaya-932'
-      );
+    let resultData = (data && data.length > 0) ? data : EXISTING_PROJECTS_DATASET;
+    if (mine === 'true' && userId) {
+      resultData = resultData.filter(p => p.entrepreneur_id === userId || p.entrepreneur_id === 'test-user-sumaya-932');
     }
 
     if (error) throw error;
     res.json({
-      data: (data && data.length > 0) ? data : filteredDataset,
+      data: resultData,
       meta: {
-        total: count || filteredDataset.length,
+        total: count || resultData.length,
         page: page ? parseInt(page) : 1,
         limit: limit ? parseInt(limit) : 50,
       }
     });
   } catch (error) {
     console.warn("Projects database fetch warning (returning dataset):", error.message);
-    const userRole = req.user?.role || req.user?.user_metadata?.role || 'investor';
+    const { mine } = req.query;
     const userId = req.user?.id;
-    let filteredDataset = EXISTING_PROJECTS_DATASET;
-    if (userRole === 'entrepreneur' && userId) {
-      filteredDataset = EXISTING_PROJECTS_DATASET.filter(p => 
-        p.entrepreneur_id === userId || p.entrepreneur_id === 'test-user-sumaya-932'
-      );
+    let dataset = EXISTING_PROJECTS_DATASET;
+    if (mine === 'true' && userId) {
+      dataset = EXISTING_PROJECTS_DATASET.filter(p => p.entrepreneur_id === userId || p.entrepreneur_id === 'test-user-sumaya-932');
     }
-    res.json({ data: filteredDataset, meta: { total: filteredDataset.length, page: 1, limit: 50 } });
+    res.json({ data: dataset, meta: { total: dataset.length, page: 1, limit: 50 } });
   }
 });
 
