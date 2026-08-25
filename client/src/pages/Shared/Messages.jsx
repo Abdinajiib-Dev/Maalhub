@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 import { Send, Loader2, MessageSquare, Search, User, ArrowLeft } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Messages = () => {
   const { user } = useAuth();
-  const location = useLocation();
   
   const [conversations, setConversations] = useState([]);
   const [selectedConv, setSelectedConv] = useState(null);
@@ -26,40 +24,7 @@ const Messages = () => {
       try {
         setLoadingConvs(true);
         const data = await api.getConversations();
-        const convList = Array.isArray(data) ? data : [];
-        setConversations(convList);
-
-        // Auto select target project owner conversation if passed via state
-        const targetUserId = location.state?.targetUserId;
-        const targetUserName = location.state?.targetUserName;
-        const sentMessageText = location.state?.sentMessageText;
-
-        if (targetUserId) {
-          const existing = convList.find(c => c.participants?.some(p => p.user?.id === targetUserId));
-          if (existing) {
-            if (sentMessageText) {
-              existing.last_message = { message: sentMessageText };
-              existing.initialMessageText = sentMessageText;
-            }
-            handleSelectConv(existing);
-          } else if (targetUserName) {
-            const newConv = {
-              id: `conv-active-${targetUserId}`,
-              updated_at: new Date().toISOString(),
-              unread_count: 0,
-              initialMessageText: sentMessageText,
-              participants: [
-                { user: { id: targetUserId, full_name: targetUserName, role: 'entrepreneur', profile_photo_url: null } },
-                { user: { id: user?.id || 'current-user', full_name: user?.user_metadata?.full_name || 'Me', role: 'user', profile_photo_url: null } }
-              ],
-              last_message: { message: sentMessageText || 'Start conversation...' }
-            };
-            setConversations(prev => [newConv, ...prev.filter(c => c.id !== newConv.id)]);
-            handleSelectConv(newConv);
-          }
-        } else if (convList.length > 0) {
-          handleSelectConv(convList[0]);
-        }
+        setConversations(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Failed to load conversations:', err);
         setConversations([]);
@@ -69,40 +34,19 @@ const Messages = () => {
     };
 
     fetchConversations();
-  }, [location.state]);
+  }, []);
 
   // Fetch Messages for selected conversation & mark as read in Database
   const handleSelectConv = async (conv) => {
-    if (!conv) return;
     setSelectedConv(conv);
     
     // Optimistically update local state to clear unread count for this sender
-    setConversations(prev => (Array.isArray(prev) ? prev : []).map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c));
+    setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c));
 
     try {
       setLoadingMessages(true);
-      let data = null;
-      try {
-        data = await api.getMessages(conv.id);
-      } catch (e) {
-        data = null;
-      }
-
-      if (Array.isArray(data) && data.length > 0) {
-        setMessages(data);
-      } else {
-        const realMsgs = [];
-        const initialText = conv.initialMessageText || (typeof conv.last_message === 'string' ? conv.last_message : conv.last_message?.message);
-        if (initialText && initialText !== 'Start conversation...') {
-          realMsgs.push({
-            id: `msg-sent-${conv.id}-${Date.now()}`,
-            sender_id: user?.id || 'current-user',
-            message: initialText,
-            created_at: new Date().toISOString()
-          });
-        }
-        setMessages(realMsgs);
-      }
+      const data = await api.getMessages(conv.id);
+      setMessages(Array.isArray(data) ? data : []);
       
       // Mark messages as read in database
       await api.markConversationAsRead(conv.id).catch(err => 
@@ -111,7 +55,6 @@ const Messages = () => {
       window.dispatchEvent(new Event('unread_messages_updated'));
     } catch (err) {
       console.error('Failed to load messages:', err);
-      setMessages([]);
     } finally {
       setLoadingMessages(false);
     }
@@ -129,31 +72,22 @@ const Messages = () => {
     const textToSend = messageText.trim();
     setMessageText('');
 
-    const newMsg = {
-      id: `msg-${Date.now()}`,
-      sender_id: user?.id || 'current-user',
-      message: textToSend,
-      created_at: new Date().toISOString()
-    };
-
-    // Immediately append sent message to array so interface stays responsive
-    setMessages(prev => [...(Array.isArray(prev) ? prev : []), newMsg]);
-
     try {
       setIsSending(true);
-      await api.sendMessage(selectedConv.id, textToSend).catch(() => {});
+      const newMsg = await api.sendMessage(selectedConv.id, textToSend);
+      setMessages(prev => [...prev, newMsg]);
       window.dispatchEvent(new Event('unread_messages_updated'));
       
       // Update conversation updated_at in the sidebar
       setConversations(convs => 
-        (Array.isArray(convs) ? convs : []).map(c => 
+        convs.map(c => 
           c.id === selectedConv.id 
             ? { ...c, updated_at: new Date().toISOString(), last_message: { message: textToSend } } 
             : c
         ).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
       );
     } catch (err) {
-      console.error('Error sending message:', err);
+      alert('Failed to send message: ' + err.message);
     } finally {
       setIsSending(false);
     }

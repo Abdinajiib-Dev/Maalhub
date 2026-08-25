@@ -21,6 +21,7 @@ const __dirname = path.dirname(__filename);
 const clientDistPath = path.join(__dirname, '../../client/dist');
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Northflank load balancer)
 const PORT = process.env.PORT || 5000;
 
 // Middleware

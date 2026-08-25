@@ -4,11 +4,12 @@ import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Get investment requests involving the authenticated user from real database
+// Get investment requests involving the authenticated user
 router.get('/', requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
     
+    // User can be either the investor or the entrepreneur
     const { data, error } = await supabase
       .from('investment_requests')
       .select(`
@@ -23,8 +24,7 @@ router.get('/', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json(data || []);
   } catch (error) {
-    console.warn("Investment requests fetch warning:", error.message);
-    res.json([]);
+    res.status(500).json({ error: error.message });
   }
 });
 

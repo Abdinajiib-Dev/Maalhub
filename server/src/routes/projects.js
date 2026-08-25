@@ -33,47 +33,37 @@ const getPagination = (page, size) => {
   return { from, to };
 };
 
-// Get published projects (Returns all published projects from database; supports mine=true)
+// Get all published projects
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const { page, limit, mine } = req.query;
+    const { page, limit } = req.query;
     const { from, to } = getPagination(page, limit);
-    const userId = req.user?.id;
 
-    let query = supabase
+    const { data, error, count } = await supabase
       .from('projects')
       .select(`
         *,
         entrepreneur:profiles!projects_entrepreneur_id_fkey(full_name, city, country, profile_photo_url)
-      `, { count: 'exact' });
-
-    if (mine === 'true' && userId) {
-      query = query.eq('entrepreneur_id', userId);
-    } else {
-      query = query.eq('status', 'Published');
-    }
-
-    const { data, error, count } = await query
+      `, { count: 'exact' })
+      .eq('status', 'Published')
       .order('created_at', { ascending: false })
       .range(from, to);
 
     if (error) throw error;
-
     res.json({
-      data: data || [],
+      data,
       meta: {
-        total: count || (data ? data.length : 0),
+        total: count,
         page: page ? parseInt(page) : 1,
         limit: limit ? parseInt(limit) : 50,
       }
     });
   } catch (error) {
-    console.warn("Projects database fetch warning:", error.message);
-    res.json({ data: [], meta: { total: 0, page: 1, limit: 50 } });
+    next(error);
   }
 });
 
-// Get logged-in user's projects from real database
+// Get logged-in user's projects
 router.get('/my-projects', requireAuth, async (req, res, next) => {
   try {
     const { page, limit } = req.query;
@@ -87,18 +77,16 @@ router.get('/my-projects', requireAuth, async (req, res, next) => {
       .range(from, to);
 
     if (error) throw error;
-
     res.json({
-      data: data || [],
+      data,
       meta: {
-        total: count || (data ? data.length : 0),
+        total: count,
         page: page ? parseInt(page) : 1,
         limit: limit ? parseInt(limit) : 50,
       }
     });
   } catch (error) {
-    console.warn("My-projects database fetch warning:", error.message);
-    res.json({ data: [], meta: { total: 0, page: 1, limit: 50 } });
+    next(error);
   }
 });
 
@@ -114,13 +102,15 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       .eq('id', req.params.id)
       .single();
 
-    if (error || !data) {
-      return res.status(404).json({ error: 'Project not found' });
+    if (error) {
+      if (error.code === 'PGRST116') { // PGRST116 is the Supabase error for no rows returned in .single()
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      throw error;
     }
-
     res.json(data);
   } catch (error) {
-    res.status(404).json({ error: 'Project not found' });
+    next(error);
   }
 });
 

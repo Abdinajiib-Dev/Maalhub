@@ -4,7 +4,7 @@ import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Get all saved projects for the authenticated user from real database
+// Get all saved projects for the authenticated user
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -21,8 +21,7 @@ router.get('/', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json(data || []);
   } catch (error) {
-    console.warn("Saved projects fetch warning:", error.message);
-    res.json([]);
+    res.status(500).json({ error: error.message });
   }
 });
 

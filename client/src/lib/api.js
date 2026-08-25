@@ -88,30 +88,21 @@ const fetchWithAuth = async (endpoint, options = {}) => {
 export const api = {
   // Projects
   getProjects: async () => {
-    try {
-      const json = await fetchWithAuth('/projects', { cache: 'no-store' });
-      if (Array.isArray(json)) return json;
-      if (json && Array.isArray(json.data)) return json.data;
-      return [];
-    } catch (err) {
-      console.warn("getProjects API error:", err);
-      return [];
-    }
+    const json = await fetchWithAuth('/projects', { cache: 'no-store' });
+    if (Array.isArray(json)) return json;
+    if (json && Array.isArray(json.data)) return json.data;
+    return [];
   },
   getProject: async (id) => {
-    return fetchWithAuth(`/projects/${id}`, { cache: 'no-store' }).catch(err => null);
+    return fetchWithAuth(`/projects/${id}`, { cache: 'no-store' });
   },
   createProject: (data) => fetchWithAuth('/projects', { method: 'POST', body: JSON.stringify(data) }),
-  getMyProjects: () => fetchWithAuth('/projects/my-projects')
-    .then(res => (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : []))
-    .catch(() => []),
+  getMyProjects: () => fetchWithAuth('/projects/my-projects').then(res => (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [])),
   updateProject: (id, data) => fetchWithAuth(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProject: (id) => fetchWithAuth(`/projects/${id}`, { method: 'DELETE' }),
   
   // Investment Requests
-  getInvestmentRequests: () => fetchWithAuth('/investment-requests')
-    .then(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : []))
-    .catch(() => []),
+  getInvestmentRequests: () => fetchWithAuth('/investment-requests').then(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
   createInvestmentRequest: (data) => fetchWithAuth('/investment-requests', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -122,17 +113,15 @@ export const api = {
   }),
   
   // Saved Projects
-  getSavedProjects: () => fetchWithAuth('/saved-projects')
-    .then(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : []))
-    .catch(() => []),
+  getSavedProjects: () => fetchWithAuth('/saved-projects').then(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
   saveProject: (project_id) => fetchWithAuth('/saved-projects', { method: 'POST', body: JSON.stringify({ project_id }) }),
   unsaveProject: (project_id) => fetchWithAuth(`/saved-projects/${project_id}`, { method: 'DELETE' }),
   
   // Messages
-  getConversations: () => fetchWithAuth('/messages').catch(() => []),
-  getMessages: (id) => fetchWithAuth(`/messages/${id}/messages`).catch(() => []),
-  getUnreadMessages: () => fetchWithAuth('/messages/unread').catch(() => ({ count: 0, messages: [] })),
-  markConversationAsRead: (id) => fetchWithAuth(`/messages/${id}/read`, { method: 'PUT' }).catch(() => {}),
+  getConversations: () => fetchWithAuth('/messages'),
+  getMessages: (id) => fetchWithAuth(`/messages/${id}/messages`),
+  getUnreadMessages: () => fetchWithAuth('/messages/unread'),
+  markConversationAsRead: (id) => fetchWithAuth(`/messages/${id}/read`, { method: 'PUT' }),
   sendMessage: (id, text) => fetchWithAuth(`/messages/${id}/messages`, {
     method: 'POST',
     body: JSON.stringify({ message: text }),
@@ -142,8 +131,7 @@ export const api = {
     body: JSON.stringify({ participant_id }),
   }),
   
-  // Profile & Auth
-  login: (credentials) => fetchWithAuth('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
+  // Profile
   getUserProfile: (id) => fetchWithAuth(`/auth/me/${id}`),
   updateProfile: (profileData) => fetchWithAuth('/auth/profile', {
     method: 'PUT',

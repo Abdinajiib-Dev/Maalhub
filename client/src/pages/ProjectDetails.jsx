@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Briefcase, MapPin, Target, ChevronLeft, Loader2, DollarSign, Send, MessageSquare } from 'lucide-react';
+import { Briefcase, MapPin, Target, ChevronLeft, Loader2, DollarSign, Send } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -212,8 +212,8 @@ const ProjectDetails = () => {
             {/* Entrepreneur Profile */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="text-lg font-bold text-gray-900 mb-6">About the Entrepreneur</h3>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-100 flex-shrink-0">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-100">
                   <img 
                     src={project.entrepreneur?.profile_photo_url || `https://ui-avatars.com/api/?name=${project.entrepreneur?.full_name || 'User'}&background=8A5F41&color=fff`} 
                     alt="Entrepreneur Avatar" 
@@ -228,29 +228,6 @@ const ProjectDetails = () => {
                   </p>
                 </div>
               </div>
-
-              <button
-                onClick={() => {
-                  if (!user) {
-                    navigate('/login');
-                    return;
-                  }
-                  const targetUserId = project.entrepreneur_id || project.entrepreneur?.id || 'user-abdinajiib-101';
-                  const targetUserName = project.entrepreneur?.full_name || project.business_name || 'Project Owner';
-                  
-                  api.startConversation(targetUserId).catch(() => {});
-                  navigate('/messages', {
-                    state: {
-                      targetUserId,
-                      targetUserName
-                    }
-                  });
-                }}
-                className="w-full bg-primary/10 hover:bg-primary hover:text-white text-primary font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-2xs cursor-pointer"
-              >
-                <MessageSquare className="w-4 h-4" />
-                Message Entrepreneur
-              </button>
             </div>
           </div>
 

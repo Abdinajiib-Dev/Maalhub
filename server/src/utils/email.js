@@ -1,41 +1,42 @@
+import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// .env is in the server root (two levels up from src/utils)
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-let transporter = null;
-try {
-  const nodemailer = await import('nodemailer').then(m => m.default || m).catch(() => null);
-  if (nodemailer) {
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'localhost',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_PORT === '465',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-  }
-} catch (e) {
-  // Nodemailer fallback
-}
+// Create a transporter using your custom SMTP details
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
+/**
+ * Send an email using the configured SMTP transporter
+ * @param {Object} options 
+ * @param {string} options.to - Recipient email address
+ * @param {string} options.subject - Email subject
+ * @param {string} options.text - Plain text content
+ * @param {string} options.html - HTML content (optional)
+ * @param {string} [options.replyTo] - Reply-To email address (optional)
+ * @returns {Promise<any>}
+ */
 export const sendEmail = async ({ to, subject, text, html, replyTo }) => {
   try {
-    if (!transporter) {
-      console.log(`[Email Mock] To: ${to} | Subject: ${subject}`);
-      return { messageId: `mock-${Date.now()}` };
-    }
     const mailOptions = {
-      from: process.env.SMTP_FROM_EMAIL || 'noreply@maalhub.com',
+      from: process.env.SMTP_FROM_EMAIL,
       to,
       subject,
       text,
-      html: html || text,
+      html: html || text, // Fallback to text if html is not provided
       replyTo,
     };
 
@@ -44,6 +45,6 @@ export const sendEmail = async ({ to, subject, text, html, replyTo }) => {
     return info;
   } catch (error) {
     console.error('Error sending email:', error);
-    return { messageId: `mock-fallback-${Date.now()}` };
+    throw error;
   }
 };

@@ -4,73 +4,63 @@ import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Store active real conversations in-memory if database table is unconfigured
-let REAL_USER_CONVERSATIONS = [];
-let REAL_USER_MESSAGES = [];
-
-// Get all conversations for the authenticated user from real data
+// Get all conversations for the authenticated user
 router.get('/', requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    try {
-      // First get the conversation IDs the user is part of
-      const { data: participants, error: participantError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', userId);
+    // First get the conversation IDs the user is part of
+    const { data: participants, error: participantError } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', userId);
 
-      if (!participantError && participants && participants.length > 0) {
-        const conversationIds = participants.map(p => p.conversation_id);
+    if (participantError) throw participantError;
 
-        const { data, error } = await supabase
-          .from('conversations')
-          .select(`
-            id,
-            updated_at,
-            participants:conversation_participants(
-              user:profiles(id, full_name, role, profile_photo_url)
-            )
-          `)
-          .in('id', conversationIds)
-          .order('updated_at', { ascending: false });
-
-        if (!error && Array.isArray(data)) {
-          const { data: unreadMsgs } = await supabase
-            .from('messages')
-            .select('conversation_id')
-            .in('conversation_id', conversationIds)
-            .neq('sender_id', userId)
-            .eq('is_read', false);
-
-          const unreadMap = {};
-          if (unreadMsgs) {
-            unreadMsgs.forEach(m => {
-              unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
-            });
-          }
-
-          const conversationsWithUnread = data.map(conv => ({
-            ...conv,
-            unread_count: unreadMap[conv.id] || 0
-          }));
-
-          return res.json(conversationsWithUnread);
-        }
-      }
-    } catch (dbErr) {
-      // Ignore database error and return real memory conversations below
+    if (!participants || participants.length === 0) {
+      return res.json([]);
     }
 
-    // Filter memory conversations for current user
-    const userConvs = REAL_USER_CONVERSATIONS.filter(c => 
-      c.participants?.some(p => p.user?.id === userId || (userId === 'test-user-sumaya-932' && p.user?.id.includes('sumaya')))
-    );
+    const conversationIds = participants.map(p => p.conversation_id);
 
-    res.json(userConvs);
+    // Now fetch the conversations with their participants (to know who we're talking to)
+    const { data, error } = await supabase
+      .from('conversations')
+      .select(`
+        id,
+        updated_at,
+        participants:conversation_participants(
+          user:profiles(id, full_name, role, profile_photo_url)
+        )
+      `)
+      .in('id', conversationIds)
+      .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Fetch unread messages per conversation for current user
+    const { data: unreadMsgs } = await supabase
+      .from('messages')
+      .select('conversation_id')
+      .in('conversation_id', conversationIds)
+      .neq('sender_id', userId)
+      .eq('is_read', false);
+
+    const unreadMap = {};
+    if (unreadMsgs) {
+      unreadMsgs.forEach(m => {
+        unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
+      });
+    }
+
+    const conversationsWithUnread = data.map(conv => ({
+      ...conv,
+      unread_count: unreadMap[conv.id] || 0
+    }));
+
+    res.json(conversationsWithUnread);
   } catch (error) {
-    console.warn("Messages list fetch error:", error.message);
-    res.json([]);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -80,46 +70,35 @@ router.post('/', requireAuth, async (req, res) => {
     const { participant_id } = req.body;
     const userId = req.user.id;
 
-    if (!participant_id) {
+    if (!participant_id || participant_id === userId) {
       return res.status(400).json({ error: 'Invalid participant_id' });
     }
 
-    try {
-      // 1. Create conversation
-      const { data: conversation, error: convError } = await supabase
-        .from('conversations')
-        .insert([{}])
-        .select()
-        .single();
+    // Checking if a conversation already exists between these two users is complex in Supabase REST API
+    // We'd ideally have an RPC function. For simplicity here, we create a new one or you can add logic to find existing.
 
-      if (!convError && conversation) {
-        // 2. Add participants
-        await supabase
-          .from('conversation_participants')
-          .insert([
-            { conversation_id: conversation.id, user_id: userId },
-            { conversation_id: conversation.id, user_id: participant_id }
-          ]);
+    // 1. Create conversation
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .insert([{}]) // default values
+      .select()
+      .single();
 
-        return res.status(201).json(conversation);
-      }
-    } catch (dbErr) {
-      // Fall through to fallback
-    }
+    if (convError) throw convError;
 
-    // Dynamic conversation fallback
-    const fallbackConv = {
-      id: `conv-active-${participant_id}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    // 2. Add participants
+    const { error: partError } = await supabase
+      .from('conversation_participants')
+      .insert([
+        { conversation_id: conversation.id, user_id: userId },
+        { conversation_id: conversation.id, user_id: participant_id }
+      ]);
 
-    res.status(201).json(fallbackConv);
+    if (partError) throw partError;
+
+    res.status(201).json(conversation);
   } catch (error) {
-    res.status(200).json({
-      id: `conv-active-${req.body.participant_id || 'user'}`,
-      created_at: new Date().toISOString()
-    });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -158,8 +137,7 @@ router.get('/unread', requireAuth, async (req, res) => {
       messages: unreadMessages
     });
   } catch (error) {
-    console.warn("Unread messages fetch error (falling back to 0):", error.message);
-    res.json({ count: 0, messages: [] });
+    res.status(500).json({ error: error.message });
   }
 });
 
