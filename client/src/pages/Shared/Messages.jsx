@@ -16,6 +16,7 @@ const Messages = () => {
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   // Fetch Conversations from Database API
@@ -60,10 +61,51 @@ const Messages = () => {
     }
   };
 
-  // Auto scroll to bottom of messages
+  // Auto scroll to bottom (latest message)
+  const scrollToBottom = (behavior = 'auto') => {
+    const doScroll = () => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior, block: 'end' });
+      }
+    };
+
+    doScroll();
+    requestAnimationFrame(doScroll);
+    setTimeout(doScroll, 50);
+  };
+
+  // Auto scroll to bottom of messages whenever conversation is loaded, selected, or updated
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!loadingMessages && messages.length > 0) {
+      scrollToBottom('auto');
+    }
+  }, [messages, loadingMessages, selectedConv?.id]);
+
+  // Periodically check for new messages when a conversation is open
+  useEffect(() => {
+    if (!selectedConv?.id) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const data = await api.getMessages(selectedConv.id);
+        if (Array.isArray(data)) {
+          setMessages(prev => {
+            if (data.length !== prev.length || (data.length > 0 && data[data.length - 1]?.id !== prev[prev.length - 1]?.id)) {
+              return data;
+            }
+            return prev;
+          });
+        }
+      } catch (err) {
+        // Silent error catch for background polling
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [selectedConv?.id]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -243,7 +285,7 @@ const Messages = () => {
               </div>
 
               {/* Chat History */}
-              <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-gray-50/50">
+              <div ref={messagesContainerRef} className="flex-1 p-4 sm:p-6 overflow-y-auto bg-gray-50/50">
                 {loadingMessages ? (
                   <div className="flex justify-center p-8">
                     <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
