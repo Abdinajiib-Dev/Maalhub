@@ -52,20 +52,7 @@ const fetchWithAuth = async (endpoint, options = {}) => {
     // Ignore network error on getSession
   }
 
-  if (!token) {
-    const localSessionRaw = localStorage.getItem('maalhub_local_session');
-    if (localSessionRaw) {
-      try {
-        token = JSON.parse(localSessionRaw)?.access_token;
-      } catch (e) {
-        token = null;
-      }
-    }
-  }
 
-  if (!token) {
-    token = 'local-mock-jwt-token-12345';
-  }
   
   const defaultHeaders = {
     'Authorization': `Bearer ${token}`,

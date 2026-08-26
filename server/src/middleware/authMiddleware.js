@@ -10,18 +10,7 @@ export const requireAuth = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
 
-    // Support local dev token fallback
-    if (token.startsWith('local-mock-jwt-token')) {
-      req.user = {
-        id: 'test-user-sumaya-932',
-        email: 'sumayaanwar932@gmail.com',
-        user_metadata: {
-          full_name: 'Sumaya Anwar',
-          role: 'entrepreneur'
-        }
-      };
-      return next();
-    }
+
 
     // 2. Verify the token using Supabase
     try {
@@ -31,19 +20,11 @@ export const requireAuth = async (req, res, next) => {
         return next();
       }
     } catch (sErr) {
-      // Supabase connection error fallback
+      console.error('Supabase token verification error:', sErr);
+      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
     }
 
-    // Fallback user for dev mode
-    req.user = {
-      id: 'test-user-sumaya-932',
-      email: 'sumayaanwar932@gmail.com',
-      user_metadata: {
-        full_name: 'Sumaya Anwar',
-        role: 'entrepreneur'
-      }
-    };
-    next();
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
   } catch (err) {
     console.error('Middleware error:', err);
     res.status(500).json({ error: 'Internal server error during authentication' });

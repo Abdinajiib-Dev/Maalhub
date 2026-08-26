@@ -21,60 +21,13 @@ const Login = () => {
     setError(null);
     
     try {
-      let data = null;
-      let signInError = null;
-
-      try {
-        const res = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        data = res.data;
-        signInError = res.error;
-      } catch (fetchErr) {
-        // Catch network / Failed to fetch error when Supabase URL is placeholder
-        console.warn("Supabase auth network request failed. Falling back to local authentication mode.");
-      }
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (signInError) throw signInError;
-
-      // Local authentication fallback for localhost dev testing
-      if (!data?.user) {
-        const isSumayaTestAccount = email.toLowerCase().trim() === 'sumayaanwar932@gmail.com';
-        const nameFromEmail = email.split('@')[0];
-        const displayName = isSumayaTestAccount ? 'Sumaya Anwar' : nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
-        
-        const localUser = {
-          id: isSumayaTestAccount ? 'test-user-sumaya-932' : `local-user-${Date.now()}`,
-          email: email,
-          user_metadata: {
-            full_name: displayName,
-            role: 'entrepreneur'
-          }
-        };
-        const localSession = {
-          access_token: 'local-mock-jwt-token-12345',
-          user: localUser
-        };
-        const localProfile = {
-          id: localUser.id,
-          email: email,
-          full_name: displayName,
-          role: 'entrepreneur',
-          city: 'Mogadishu',
-          country: 'Somalia',
-          created_at: new Date().toISOString()
-        };
-
-        localStorage.setItem('maalhub_local_session', JSON.stringify(localSession));
-        localStorage.setItem('maalhub_local_profile', JSON.stringify(localProfile));
-
-        // Trigger custom event so AuthContext updates state immediately
-        window.dispatchEvent(new Event('maalhub_auth_change'));
-
-        navigate('/entrepreneur/dashboard');
-        return;
-      }
+      if (!data?.user) throw new Error("Authentication failed");
 
       // If Supabase auth succeeded, fetch profile role to navigate
       try {

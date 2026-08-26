@@ -82,29 +82,11 @@ router.get('/me/:id', async (req, res) => {
       return res.status(200).json({ profile, roleDetails });
     }
   } catch (error) {
-    // Ignore Supabase connection error and fallback below
+    console.error('Error fetching profile:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 
-  // Local fallback profile for development testing
-  const fallbackProfile = {
-    id: id,
-    email: id === 'test-user-sumaya-932' ? 'sumayaanwar932@gmail.com' : 'user@example.com',
-    full_name: id === 'test-user-sumaya-932' ? 'Sumaya Anwar' : 'Test User',
-    role: 'entrepreneur',
-    city: 'Mogadishu',
-    country: 'Somalia',
-    created_at: new Date().toISOString()
-  };
-
-  const fallbackRoleDetails = {
-    user_id: id,
-    startup_company_name: 'MaalHub Innovation',
-    industry: 'FinTech',
-    startup_stage: 'Seed',
-    funding_goal: 50000
-  };
-
-  res.status(200).json({ profile: fallbackProfile, roleDetails: fallbackRoleDetails });
+  return res.status(404).json({ error: 'Profile not found' });
 });
 // Route to update user profile
 router.put('/profile', async (req, res) => {
