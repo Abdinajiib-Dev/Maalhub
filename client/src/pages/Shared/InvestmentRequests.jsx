@@ -44,9 +44,13 @@ const InvestmentRequests = () => {
   const handleMessageUser = async (userId) => {
     try {
       setActionLoading('msg-' + userId);
-      await api.startConversation(userId);
-      // Navigate to messages tab
-      navigate('../messages');
+      const conv = await api.startConversation(userId);
+      // Navigate to messages tab and open existing or new chat thread
+      if (conv && conv.id) {
+        navigate('../messages', { state: { selectedConvId: conv.id } });
+      } else {
+        navigate('../messages');
+      }
     } catch (err) {
       alert(`Failed to start conversation: ${err.message}`);
     } finally {

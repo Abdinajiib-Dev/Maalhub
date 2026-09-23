@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Briefcase, Loader2, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Briefcase, Loader2, ArrowRight, Plus } from 'lucide-react';
 import { api } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const Projects = () => {
+  const { profile } = useAuth();
+  const isEntrepreneur = profile?.role === 'entrepreneur';
+
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,10 +41,26 @@ const Projects = () => {
         
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Explore Investment Opportunities</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {isEntrepreneur ? "My Startup Projects" : "Explore Investment Opportunities"}
+          </h1>
           <p className="text-gray-500 text-lg mb-8">
-            Discover and connect with innovative startups looking for funding and mentorship.
+            {isEntrepreneur 
+              ? "View and manage your created startup projects." 
+              : "Discover and connect with innovative startups looking for funding and mentorship."}
           </p>
+
+          {isEntrepreneur && (
+            <div className="mb-6">
+              <Link 
+                to="/entrepreneur/create-project" 
+                className="inline-flex items-center bg-primary hover:bg-secondary text-white px-6 py-3 rounded-full font-bold shadow-sm transition-colors"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Create New Project
+              </Link>
+            </div>
+          )}
 
           {/* Search Bar */}
           <div className="relative max-w-xl mx-auto">
@@ -50,7 +70,7 @@ const Projects = () => {
             <input
               type="text"
               className="block w-full pl-11 pr-4 py-4 bg-white border border-gray-200 rounded-full text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
-              placeholder="Search by project name, company, or industry..."
+              placeholder={isEntrepreneur ? "Search your projects..." : "Search by project name, company, or industry..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

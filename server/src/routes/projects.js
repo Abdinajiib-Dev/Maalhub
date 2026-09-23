@@ -33,19 +33,35 @@ const getPagination = (page, size) => {
   return { from, to };
 };
 
-// Get all published projects
+// Get projects (scoped by user role)
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     const { page, limit } = req.query;
     const { from, to } = getPagination(page, limit);
 
-    const { data, error, count } = await supabase
+    // Fetch user profile to determine role
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', req.user.id)
+      .single();
+
+    let query = supabase
       .from('projects')
       .select(`
         *,
         entrepreneur:profiles!projects_entrepreneur_id_fkey(full_name, city, country, profile_photo_url)
-      `, { count: 'exact' })
-      .eq('status', 'Published')
+      `, { count: 'exact' });
+
+    if (profile?.role === 'entrepreneur') {
+      // Entrepreneurs only see their own created projects
+      query = query.eq('entrepreneur_id', req.user.id);
+    } else {
+      // Investors see all published projects from any entrepreneur
+      query = query.eq('status', 'Published');
+    }
+
+    const { data, error, count } = await query
       .order('created_at', { ascending: false })
       .range(from, to);
 
@@ -90,9 +106,15 @@ router.get('/my-projects', requireAuth, async (req, res, next) => {
   }
 });
 
-// Get single project details
+// Get single project details with access control
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', req.user.id)
+      .single();
+
     const { data, error } = await supabase
       .from('projects')
       .select(`
@@ -108,6 +130,12 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       }
       throw error;
     }
+
+    // Role check: Entrepreneurs cannot view projects created by other entrepreneurs
+    if (profile?.role === 'entrepreneur' && data.entrepreneur_id !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied: Entrepreneurs can only view their own projects.' });
+    }
+
     res.json(data);
   } catch (error) {
     next(error);

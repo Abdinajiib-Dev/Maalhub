@@ -53,12 +53,29 @@ router.get('/', requireAuth, async (req, res) => {
       });
     }
 
-    const conversationsWithUnread = data.map(conv => ({
+    // Fetch latest message per conversation for previews
+    const { data: latestMsgs } = await supabase
+      .from('messages')
+      .select('conversation_id, message, created_at, sender_id')
+      .in('conversation_id', conversationIds)
+      .order('created_at', { ascending: false });
+
+    const lastMessageMap = {};
+    if (latestMsgs) {
+      latestMsgs.forEach(msg => {
+        if (!lastMessageMap[msg.conversation_id]) {
+          lastMessageMap[msg.conversation_id] = msg;
+        }
+      });
+    }
+
+    const conversationsWithDetails = data.map(conv => ({
       ...conv,
-      unread_count: unreadMap[conv.id] || 0
+      unread_count: unreadMap[conv.id] || 0,
+      last_message: lastMessageMap[conv.id] || null
     }));
 
-    res.json(conversationsWithUnread);
+    res.json(conversationsWithDetails);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -74,10 +91,37 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid participant_id' });
     }
 
-    // Checking if a conversation already exists between these two users is complex in Supabase REST API
-    // We'd ideally have an RPC function. For simplicity here, we create a new one or you can add logic to find existing.
+    // Check if a conversation already exists between these two users
+    const { data: myPart, error: myPartErr } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', userId);
 
-    // 1. Create conversation
+    if (!myPartErr && myPart && myPart.length > 0) {
+      const myConvIds = myPart.map(p => p.conversation_id);
+      const { data: sharedPart, error: sharedErr } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', participant_id)
+        .in('conversation_id', myConvIds)
+        .limit(1);
+
+      if (!sharedErr && sharedPart && sharedPart.length > 0) {
+        // Fetch existing conversation details
+        const existingId = sharedPart[0].conversation_id;
+        const { data: existingConv } = await supabase
+          .from('conversations')
+          .select('*, participants:conversation_participants(user:profiles(id, full_name, role, profile_photo_url))')
+          .eq('id', existingId)
+          .single();
+
+        if (existingConv) {
+          return res.status(200).json(existingConv);
+        }
+      }
+    }
+
+    // 1. Create conversation if non-existent
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
       .insert([{}]) // default values

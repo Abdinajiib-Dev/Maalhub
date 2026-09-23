@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Send, Loader2, MessageSquare, Search, User, ArrowLeft } from 'lucide-react';
 import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Messages = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   
   const [conversations, setConversations] = useState([]);
   const [selectedConv, setSelectedConv] = useState(null);
@@ -17,14 +21,30 @@ const Messages = () => {
   const [isSending, setIsSending] = useState(false);
   
   const messagesEndRef = useRef(null);
+  const selectedConvRef = useRef(selectedConv);
 
-  // Fetch Conversations from Database API
+  useEffect(() => {
+    selectedConvRef.current = selectedConv;
+  }, [selectedConv]);
+
+  // Target conversation ID passed via navigation state or query string (?convId=...)
+  const targetConvId = location.state?.selectedConvId || searchParams.get('convId');
+
+  // Fetch Conversations from Database API & auto select target if present
   useEffect(() => {
     const fetchConversations = async () => {
       try {
         setLoadingConvs(true);
         const data = await api.getConversations();
-        setConversations(Array.isArray(data) ? data : []);
+        const convList = Array.isArray(data) ? data : [];
+        setConversations(convList);
+
+        if (targetConvId) {
+          const matched = convList.find(c => c.id === targetConvId);
+          if (matched) {
+            handleSelectConv(matched);
+          }
+        }
       } catch (err) {
         console.error('Failed to load conversations:', err);
         setConversations([]);
@@ -34,7 +54,67 @@ const Messages = () => {
     };
 
     fetchConversations();
-  }, []);
+  }, [targetConvId]);
+
+  // Real-time listener for incoming messages via Supabase Realtime
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('public:messages')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        async (payload) => {
+          const newMsg = payload.new;
+          if (!newMsg) return;
+
+          // If the message belongs to the currently active conversation
+          if (selectedConvRef.current && selectedConvRef.current.id === newMsg.conversation_id) {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === newMsg.id)) return prev;
+              return [...prev, newMsg];
+            });
+
+            // Mark message as read if sent by recipient
+            if (newMsg.sender_id !== user.id) {
+              api.markConversationAsRead(newMsg.conversation_id).catch(() => {});
+              window.dispatchEvent(new Event('unread_messages_updated'));
+            }
+          }
+
+          // Update sidebar conversations list live
+          setConversations((convs) => {
+            const exists = convs.some((c) => c.id === newMsg.conversation_id);
+            if (!exists) {
+              api.getConversations().then((data) => setConversations(Array.isArray(data) ? data : []));
+              return convs;
+            }
+
+            return convs
+              .map((c) => {
+                if (c.id === newMsg.conversation_id) {
+                  const isCurrentConv = selectedConvRef.current?.id === newMsg.conversation_id;
+                  const isMyMsg = newMsg.sender_id === user.id;
+                  return {
+                    ...c,
+                    updated_at: newMsg.created_at || new Date().toISOString(),
+                    last_message: { message: newMsg.message, created_at: newMsg.created_at, sender_id: newMsg.sender_id },
+                    unread_count: (!isCurrentConv && !isMyMsg) ? (c.unread_count || 0) + 1 : c.unread_count
+                  };
+                }
+                return c;
+              })
+              .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   // Fetch Messages for selected conversation & mark as read in Database
   const handleSelectConv = async (conv) => {
@@ -75,14 +155,17 @@ const Messages = () => {
     try {
       setIsSending(true);
       const newMsg = await api.sendMessage(selectedConv.id, textToSend);
-      setMessages(prev => [...prev, newMsg]);
+      setMessages(prev => {
+        if (prev.some(m => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
+      });
       window.dispatchEvent(new Event('unread_messages_updated'));
       
       // Update conversation updated_at in the sidebar
       setConversations(convs => 
         convs.map(c => 
           c.id === selectedConv.id 
-            ? { ...c, updated_at: new Date().toISOString(), last_message: { message: textToSend } } 
+            ? { ...c, updated_at: new Date().toISOString(), last_message: { message: textToSend, created_at: new Date().toISOString(), sender_id: user?.id } } 
             : c
         ).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
       );
