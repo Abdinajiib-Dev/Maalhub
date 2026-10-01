@@ -136,7 +136,23 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       return res.status(403).json({ error: 'Access denied: Entrepreneurs can only view their own projects.' });
     }
 
-    res.json(data);
+    // Attempt to fetch investment phases for this project
+    let phases = [];
+    try {
+      const { data: phaseData, error: phaseError } = await supabase
+        .from('project_investment_phases')
+        .select('*')
+        .eq('project_id', req.params.id)
+        .order('phase_number', { ascending: true });
+
+      if (!phaseError && phaseData) {
+        phases = phaseData;
+      }
+    } catch (phaseErr) {
+      console.warn('Phase fetch warning:', phaseErr.message);
+    }
+
+    res.json({ ...data, phases });
   } catch (error) {
     next(error);
   }
@@ -163,9 +179,12 @@ router.post('/', requireAuth, validate(projectSchema), async (req, res, next) =>
 
     if (entError) throw entError;
 
+    // Separate phases from the project columns
+    const { phases, ...rawProjectData } = req.body;
+
     // Merge the auto-populated fields with the request body
     const projectData = { 
-      ...req.body, 
+      ...rawProjectData, 
       entrepreneur_id: req.user.id,
       business_name: entProfile.startup_company_name,
       industry: entProfile.industry,
@@ -180,7 +199,36 @@ router.post('/', requireAuth, validate(projectSchema), async (req, res, next) =>
       .single();
 
     if (error) throw error;
-    res.status(201).json(data);
+
+    // Insert investment phases if provided
+    let insertedPhases = [];
+    if (Array.isArray(phases) && phases.length > 0) {
+      try {
+        const phasesToInsert = phases.map((p, index) => ({
+          project_id: data.id,
+          phase_number: p.phase_number || (index + 1),
+          title: p.title || `Phase ${index + 1}`,
+          description: p.description || '',
+          target_amount: Number(p.target_amount) || 0,
+          current_amount: 0,
+          status: p.status || (index === 0 ? 'Active' : 'Upcoming'),
+          target_date: p.target_date || null
+        }));
+
+        const { data: phaseResult, error: phaseInsertError } = await supabase
+          .from('project_investment_phases')
+          .insert(phasesToInsert)
+          .select();
+
+        if (!phaseInsertError && phaseResult) {
+          insertedPhases = phaseResult;
+        }
+      } catch (phaseErr) {
+        console.warn('Could not insert phases during project creation:', phaseErr.message);
+      }
+    }
+
+    res.status(201).json({ ...data, phases: insertedPhases });
   } catch (error) {
     next(error);
   }
@@ -244,6 +292,121 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       .from('projects')
       .delete()
       .eq('id', projectId);
+
+    if (error) throw error;
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Add a phase to an existing project (Entrepreneur only)
+router.post('/:id/phases', requireAuth, async (req, res, next) => {
+  try {
+    const projectId = req.params.id;
+
+    // Verify ownership
+    const { data: project, error: pErr } = await supabase
+      .from('projects')
+      .select('entrepreneur_id')
+      .eq('id', projectId)
+      .single();
+
+    if (pErr || !project) return res.status(404).json({ error: 'Project not found' });
+    if (project.entrepreneur_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden: Only the project owner can add phases' });
+    }
+
+    const { phase_number, title, description, target_amount, status, target_date } = req.body;
+    if (!title || !target_amount) {
+      return res.status(400).json({ error: 'Title and target amount are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('project_investment_phases')
+      .insert([{
+        project_id: projectId,
+        phase_number: phase_number || 1,
+        title,
+        description: description || '',
+        target_amount: Number(target_amount),
+        current_amount: 0,
+        status: status || 'Upcoming',
+        target_date: target_date || null
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update a phase (Entrepreneur only)
+router.put('/:id/phases/:phaseId', requireAuth, async (req, res, next) => {
+  try {
+    const { id: projectId, phaseId } = req.params;
+
+    // Verify ownership
+    const { data: project, error: pErr } = await supabase
+      .from('projects')
+      .select('entrepreneur_id')
+      .eq('id', projectId)
+      .single();
+
+    if (pErr || !project) return res.status(404).json({ error: 'Project not found' });
+    if (project.entrepreneur_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden: Only the project owner can update phases' });
+    }
+
+    const updates = {};
+    if (req.body.title !== undefined) updates.title = req.body.title;
+    if (req.body.description !== undefined) updates.description = req.body.description;
+    if (req.body.target_amount !== undefined) updates.target_amount = Number(req.body.target_amount);
+    if (req.body.current_amount !== undefined) updates.current_amount = Number(req.body.current_amount);
+    if (req.body.status !== undefined) updates.status = req.body.status;
+    if (req.body.phase_number !== undefined) updates.phase_number = Number(req.body.phase_number);
+    if (req.body.target_date !== undefined) updates.target_date = req.body.target_date;
+
+    const { data, error } = await supabase
+      .from('project_investment_phases')
+      .update(updates)
+      .eq('id', phaseId)
+      .eq('project_id', projectId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete a phase (Entrepreneur only)
+router.delete('/:id/phases/:phaseId', requireAuth, async (req, res, next) => {
+  try {
+    const { id: projectId, phaseId } = req.params;
+
+    // Verify ownership
+    const { data: project, error: pErr } = await supabase
+      .from('projects')
+      .select('entrepreneur_id')
+      .eq('id', projectId)
+      .single();
+
+    if (pErr || !project) return res.status(404).json({ error: 'Project not found' });
+    if (project.entrepreneur_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden: Only the project owner can delete phases' });
+    }
+
+    const { error } = await supabase
+      .from('project_investment_phases')
+      .delete()
+      .eq('id', phaseId)
+      .eq('project_id', projectId);
 
     if (error) throw error;
     res.status(204).send();
