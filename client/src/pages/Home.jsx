@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowRight, FolderKanban, Filter, TrendingUp, MessageSquare, BarChart3, ShieldCheck } from 'lucide-react';
+import { Shield, ArrowRight, FolderKanban, Filter, TrendingUp, MessageSquare, BarChart3, ShieldCheck, Layers } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { PROJECT_CATEGORIES } from '../constants/categories';
 
 const features = [
   {
@@ -65,7 +66,7 @@ const Home = () => {
                 <span className="block text-primary">Find Investment.</span>
               </h1>
               <p className="text-base sm:text-lg text-gray-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                MaalHub connects entrepreneurs with investors to turn promising ideas into real opportunities and growing businesses.
+                MaalHub connects entrepreneurs with investors across key business and development sectors to turn promising ideas into real opportunities.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
@@ -128,8 +129,56 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Project Scope Categories Section */}
+      <section className="py-20 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full mb-3 uppercase tracking-wider">
+              <Layers className="w-3.5 h-3.5" /> Core Scope
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">Project Scope</h2>
+            <p className="text-lg text-gray-600">
+              MaalHub focuses on connecting entrepreneurs with investors across four main business and development categories:
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {PROJECT_CATEGORIES.map((cat, idx) => {
+              const IconComponent = cat.icon;
+              return (
+                <div 
+                  key={cat.id}
+                  className="bg-[#FAF9F6] rounded-2xl p-6 border border-gray-200/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
+                >
+                  <div>
+                    <div className={`w-14 h-14 rounded-2xl ${cat.badgeBg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm`}>
+                      <IconComponent className="h-7 w-7" />
+                    </div>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Category {idx + 1}</span>
+                    <h3 className="text-xl font-bold text-gray-900 mt-1 mb-3 group-hover:text-primary transition-colors">
+                      {cat.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                      {cat.description}
+                    </p>
+                  </div>
+
+                  <Link 
+                    to={`/projects?category=${encodeURIComponent(cat.name)}`}
+                    className={`inline-flex items-center font-semibold text-sm ${cat.accentColor} hover:underline`}
+                  >
+                    Browse {cat.name} Projects
+                    <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Platform Introduction */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12">What is MaalHub?</h2>
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -144,7 +193,7 @@ const Home = () => {
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">✓</span>
-                  Investors can discover, filter, and save projects.
+                  Investors can discover, filter by scope category, and save projects.
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">✓</span>
@@ -165,7 +214,7 @@ const Home = () => {
       </section>
 
       {/* Project Features */}
-      <section className="py-20 bg-background border-t border-gray-100">
+      <section className="py-20 bg-white border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Project Features</h2>
@@ -197,7 +246,7 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-white border-t border-gray-100">
+      <section className="py-20 bg-background border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-16">How It Works</h2>
           <div className="grid md:grid-cols-2 gap-16">
@@ -217,7 +266,7 @@ const Home = () => {
                   <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white font-bold text-xl">2</div>
                   <div className="ml-4">
                     <h4 className="text-xl font-medium">Submit your project</h4>
-                    <p className="text-gray-600 mt-1">Detail your business, goals, and funding needs.</p>
+                    <p className="text-gray-600 mt-1">Detail your business, choose project scope category, and funding needs.</p>
                   </div>
                 </div>
                 <div className="flex">
@@ -245,7 +294,7 @@ const Home = () => {
                   <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-secondary text-white font-bold text-xl">2</div>
                   <div className="ml-4">
                     <h4 className="text-xl font-medium">Browse projects</h4>
-                    <p className="text-gray-600 mt-1">Discover and filter opportunities that match your criteria.</p>
+                    <p className="text-gray-600 mt-1">Discover and filter opportunities that match your target categories.</p>
                   </div>
                 </div>
                 <div className="flex">
@@ -280,4 +329,3 @@ const Home = () => {
 };
 
 export default Home;
-

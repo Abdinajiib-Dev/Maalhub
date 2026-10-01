@@ -278,14 +278,13 @@ const Register = () => {
                       <input type="text" {...register("startup_company_name", { required: true })} className="input-field" />
                     </div>
                     <div>
-                      <label className="label">Industry *</label>
+                      <label className="label">Industry / Project Category *</label>
                       <select {...register("industry", { required: true })} className="input-field">
-                        <option value="">Select...</option>
-                        <option value="FinTech">FinTech</option>
-                        <option value="E-commerce">E-commerce</option>
-                        <option value="HealthTech">HealthTech</option>
-                        <option value="EdTech">EdTech</option>
-                        <option value="Technology">Technology</option>
+                        <option value="">Select Category...</option>
+                        <option value="Agriculture">Agriculture</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+                        <option value="Education">Education</option>
                         <option value="Other">Other</option>
                       </select>
                     </div>
@@ -327,14 +326,14 @@ const Register = () => {
                       </div>
                     </div>
                      <div>
-                      <label className="label">Target Industry (Primary) *</label>
+                      <label className="label">Target Industry (Primary Scope) *</label>
                       <select {...register("target_industries", { required: true })} className="input-field">
-                        <option value="">Select...</option>
-                        <option value="FinTech">FinTech</option>
-                        <option value="E-commerce">E-commerce</option>
-                        <option value="HealthTech">HealthTech</option>
-                        <option value="Technology">Technology</option>
-                        <option value="Any">Any</option>
+                        <option value="">Select Target Category...</option>
+                        <option value="Agriculture">Agriculture</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+                        <option value="Education">Education</option>
+                        <option value="Any">Any Category</option>
                       </select>
                     </div>
                   </div>

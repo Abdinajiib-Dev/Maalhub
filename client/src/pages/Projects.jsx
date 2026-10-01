@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, MapPin, Briefcase, Loader2, ArrowRight, Plus } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Search, MapPin, Briefcase, Loader2, ArrowRight, Plus, Filter, Tag } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
+import { PROJECT_CATEGORIES } from '../constants/categories';
 
 const Projects = () => {
   const { profile } = useAuth();
   const isEntrepreneur = profile?.role === 'entrepreneur';
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialCategory = searchParams.get('category') || 'All';
 
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -29,29 +34,54 @@ const Projects = () => {
     fetchProjects();
   }, []);
 
-  const filteredProjects = projects.filter(project => 
-    project.project_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.industry?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Sync state if URL query param changes
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    if (cat) {
+      setSelectedCategory(cat);
+    }
+  }, [searchParams]);
+
+  const handleCategoryChange = (categoryName) => {
+    setSelectedCategory(categoryName);
+    if (categoryName === 'All') {
+      searchParams.delete('category');
+    } else {
+      searchParams.set('category', categoryName);
+    }
+    setSearchParams(searchParams);
+  };
+
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = 
+      project.project_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.industry?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCategory = 
+      selectedCategory === 'All' || 
+      project.industry?.toLowerCase() === selectedCategory.toLowerCase();
+
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="bg-[#FAF9F6] min-h-screen pt-10 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-4">
             {isEntrepreneur ? "My Startup Projects" : "Explore Investment Opportunities"}
           </h1>
           <p className="text-gray-500 text-lg mb-8">
             {isEntrepreneur 
-              ? "View and manage your created startup projects." 
-              : "Discover and connect with innovative startups looking for funding and mentorship."}
+              ? "View and manage your created startup projects across Agriculture, Healthcare, Hospitality & Tourism, and Education." 
+              : "Discover and connect with innovative startups looking for funding in key development sectors."}
           </p>
 
           {isEntrepreneur && (
-            <div className="mb-6">
+            <div className="mb-8">
               <Link 
                 to="/entrepreneur/create-project" 
                 className="inline-flex items-center bg-primary hover:bg-secondary text-white px-6 py-3 rounded-full font-bold shadow-sm transition-colors"
@@ -62,18 +92,73 @@ const Projects = () => {
             </div>
           )}
 
-          {/* Search Bar */}
-          <div className="relative max-w-xl mx-auto">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+          {/* Search & Category Filter Controls */}
+          <div className="space-y-4 max-w-2xl mx-auto">
+            {/* Search Bar */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-full text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
+                placeholder={isEntrepreneur ? "Search your projects..." : "Search by project title, business name, or keywords..."}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              className="block w-full pl-11 pr-4 py-4 bg-white border border-gray-200 rounded-full text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
-              placeholder={isEntrepreneur ? "Search your projects..." : "Search by project name, company, or industry..."}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+
+            {/* Select Dropdown Filter */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div className="flex items-center gap-2 w-full sm:w-auto text-sm text-gray-600 font-medium">
+                <Filter className="w-4 h-4 text-primary" />
+                <span>Filter by Category:</span>
+              </div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="w-full sm:w-72 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm cursor-pointer"
+              >
+                <option value="All">All Categories</option>
+                {PROJECT_CATEGORIES.map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Interactive Category Chips */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              <button
+                onClick={() => handleCategoryChange('All')}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                  selectedCategory === 'All'
+                    ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                All Projects
+              </button>
+              {PROJECT_CATEGORIES.map((cat) => {
+                const isSelected = selectedCategory.toLowerCase() === cat.name.toLowerCase();
+                const IconComp = cat.icon;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => handleCategoryChange(cat.name)}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                      isSelected
+                        ? `${cat.badgeBg} shadow-sm border-current`
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <IconComp className="w-3.5 h-3.5" />
+                    {cat.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -93,58 +178,77 @@ const Projects = () => {
               <Briefcase className="h-8 w-8 text-gray-400" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No projects found</h3>
-            <p className="text-gray-500">We couldn't find any active projects matching your criteria.</p>
+            <p className="text-gray-500 mb-4">
+              {selectedCategory !== 'All' 
+                ? `There are currently no active projects listed under ${selectedCategory}.` 
+                : "We couldn't find any active projects matching your search criteria."}
+            </p>
+            {selectedCategory !== 'All' && (
+              <button 
+                onClick={() => handleCategoryChange('All')} 
+                className="text-primary hover:underline text-sm font-semibold"
+              >
+                Clear category filter
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project) => (
-              <div key={project.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow border border-gray-100 overflow-hidden flex flex-col group">
-                <div className="p-6 flex-grow">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full mb-2">
-                        {project.industry || 'Various'}
-                      </span>
-                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
-                        {project.project_name}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">{project.business_name}</p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-gray-600 text-sm mb-6 line-clamp-3">
-                    {project.project_description || 'No description provided for this project.'}
-                  </p>
+            {filteredProjects.map((project) => {
+              const catObj = PROJECT_CATEGORIES.find(c => c.name.toLowerCase() === (project.industry || '').toLowerCase());
+              const IconComp = catObj ? catObj.icon : Tag;
+              const badgeStyle = catObj ? catObj.badgeBg : 'bg-primary/10 text-primary border-primary/20';
 
-                  <div className="space-y-2 mb-6">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                      {project.location || 'Location unverified'}
+              return (
+                <div key={project.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow border border-gray-100 overflow-hidden flex flex-col group">
+                  <div className="p-6 flex-grow">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full border mb-3 ${badgeStyle}`}>
+                          <IconComp className="w-3.5 h-3.5" />
+                          {project.industry || 'General Business'}
+                        </span>
+                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
+                          {project.project_name}
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">{project.business_name}</p>
+                      </div>
                     </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
-                      Stage: <span className="font-medium text-gray-900 ml-1">{project.startup_stage || 'Idea'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Funding Goal</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      ${project.funding_goal?.toLocaleString() || '0'}
+                    
+                    <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
+                      {project.project_description || 'No description provided for this project.'}
                     </p>
+
+                    <div className="space-y-2 mb-6">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                        {project.location || 'Location unverified'}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
+                        Stage: <span className="font-medium text-gray-900 ml-1">{project.startup_stage || 'Idea'}</span>
+                      </div>
+                    </div>
                   </div>
-                  <Link 
-                    to={`/projects/${project.id}`} 
-                    className="flex items-center text-primary font-medium text-sm hover:underline"
-                  >
-                    View Details
-                    <ArrowRight className="h-4 w-4 ml-1" />
-                  </Link>
+
+                  <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Funding Goal</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        ${project.funding_goal?.toLocaleString() || '0'}
+                      </p>
+                    </div>
+                    <Link 
+                      to={`/projects/${project.id}`} 
+                      className="flex items-center text-primary font-medium text-sm hover:underline"
+                    >
+                      View Details
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

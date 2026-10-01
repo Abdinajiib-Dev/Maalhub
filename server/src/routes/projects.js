@@ -167,10 +167,10 @@ router.post('/', requireAuth, validate(projectSchema), async (req, res, next) =>
     const projectData = { 
       ...req.body, 
       entrepreneur_id: req.user.id,
-      business_name: entProfile.startup_company_name,
-      industry: entProfile.industry,
-      startup_stage: entProfile.startup_stage,
-      location: `${profile.city}, ${profile.country}`
+      business_name: req.body.business_name || entProfile?.startup_company_name || 'Startup Business',
+      industry: req.body.industry || req.body.category || entProfile?.industry || 'Agriculture',
+      startup_stage: req.body.startup_stage || entProfile?.startup_stage || 'Growth',
+      location: profile ? `${profile.city}, ${profile.country}` : 'Location unverified'
     };
     
     const { data, error } = await supabase
