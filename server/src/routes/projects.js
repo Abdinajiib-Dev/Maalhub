@@ -254,17 +254,41 @@ router.put('/:id', requireAuth, validate(updateProjectSchema), async (req, res, 
       return res.status(403).json({ error: 'Forbidden: You can only update your own projects' });
     }
 
-    const { data, error } = await supabase
+    const updates = { ...req.body };
+    if (updates.progress_percentage !== undefined) {
+      const val = Math.min(100, Math.max(0, parseInt(updates.progress_percentage) || 0));
+      updates.progress_percentage = val;
+      updates.current_progress = `${val}%`;
+    }
+
+    let { data, error } = await supabase
       .from('projects')
-      .update(req.body)
+      .update(updates)
       .eq('id', projectId)
       .select()
       .single();
 
-    if (error) throw error;
-    res.json(data);
+    if (error && error.message && error.message.toLowerCase().includes('progress_percentage')) {
+      delete updates.progress_percentage;
+      const retry = await supabase
+        .from('projects')
+        .update(updates)
+        .eq('id', projectId)
+        .select()
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
+
+    if (error) {
+      console.error('Project update DB error:', error);
+      return res.status(400).json({ error: error.message || 'Failed to update project' });
+    }
+
+    res.json(data || { id: projectId, ...updates });
   } catch (error) {
-    next(error);
+    console.error('Project update route error:', error);
+    res.status(500).json({ error: error.message || 'Internal server error during project update' });
   }
 });
 

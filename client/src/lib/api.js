@@ -52,8 +52,23 @@ const fetchWithAuth = async (endpoint, options = {}) => {
     // Ignore network error on getSession
   }
 
+  if (!token) {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          const item = JSON.parse(localStorage.getItem(key));
+          if (item?.access_token) {
+            token = item.access_token;
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
 
-  
   const defaultHeaders = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
