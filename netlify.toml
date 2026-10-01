@@ -6,10 +6,11 @@
   # Vite outputs the build to the 'dist' folder
   publish = "dist"
 
-# Proxy API requests to Northflank backend
+
+# Proxy API requests to Fly.io backend
 [[redirects]]
   from = "/api/*"
-  to = "https://site--maalhub-server--8pjr9gvv5yjl.code.run/api/:splat"
+  to = "https://maalhub-api.fly.dev/api/:splat"
   status = 200
   force = true
 

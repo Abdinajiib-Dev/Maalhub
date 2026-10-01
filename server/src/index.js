@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -21,7 +22,7 @@ const __dirname = path.dirname(__filename);
 const clientDistPath = path.join(__dirname, '../../client/dist');
 
 const app = express();
-app.set('trust proxy', 1); // Trust first proxy (Northflank load balancer)
+app.set('trust proxy', 1); // Trust reverse proxy load balancer
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -69,10 +70,14 @@ app.use('/api', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
-// SPA Fallback for non-API routes (serves frontend on single port)
+// SPA Fallback for non-API routes (serves frontend on single port if bundled)
 app.get(/(.*)/, (req, res, next) => {
   if (req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(clientDistPath, 'index.html'));
+  const indexHtml = path.join(clientDistPath, 'index.html');
+  if (fs.existsSync(indexHtml)) {
+    return res.sendFile(indexHtml);
+  }
+  res.status(200).json({ status: 'ok', message: 'MaalHub API Server is active' });
 });
 
 // Error handling
