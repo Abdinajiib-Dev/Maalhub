@@ -20,12 +20,20 @@ export const AuthProvider = ({ children }) => {
         setProfile(data);
         return;
       }
-    } catch (err) {
-      console.warn('Supabase profile fetch error:', err);
-    }
 
-    setProfile(null);
-    setLoading(false);
+      // Fallback: fetch from backend Express API
+      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
+      const response = await fetch(`${apiUrl}/auth/me/${userId}`);
+      if (response.ok) {
+        const resJson = await response.json();
+        if (resJson?.profile) {
+          setProfile(resJson.profile);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Profile fetch error:', err);
+    }
   };
 
   useEffect(() => {

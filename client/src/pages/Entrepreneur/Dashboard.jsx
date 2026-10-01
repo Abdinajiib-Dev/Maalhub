@@ -55,13 +55,17 @@ const Dashboard = () => {
   const totalFundingGoal = projects.reduce((sum, p) => sum + Number(p.funding_goal), 0);
   const acceptedInvestments = requests.filter(r => r.status === 'Accepted').length;
 
+  const userName = profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'User';
+  const rawRole = profile?.role || user?.user_metadata?.role || 'entrepreneur';
+  const userRoleDisplay = rawRole ? rawRole.charAt(0).toUpperCase() + rawRole.slice(1).toLowerCase() : 'Entrepreneur';
+
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 w-full max-w-[1200px] mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
-            Welcome back, {profile?.full_name?.split(' ')[0] || 'Entrepreneur'}!
+            Welcome back, {userName}! {userRoleDisplay}
           </h1>
           <p className="text-gray-500 mt-1 text-sm leading-normal">
             Manage your projects and investment opportunities from your dashboard.
