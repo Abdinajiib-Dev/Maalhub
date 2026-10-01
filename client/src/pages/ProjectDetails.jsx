@@ -14,10 +14,13 @@ import {
   Calendar, 
   Sparkles,
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  TrendingUp,
+  Edit3
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
+import ProjectProgressBar from '../components/ProjectProgressBar';
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -38,6 +41,26 @@ const ProjectDetails = () => {
 
   // Phase update loading state (for entrepreneur owners)
   const [phaseActionLoading, setPhaseActionLoading] = useState(null);
+
+  // Progress percentage update state (for entrepreneur owners)
+  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [newProgress, setNewProgress] = useState(0);
+  const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
+
+  const handleUpdateProgressSubmit = async (e) => {
+    e.preventDefault();
+    setIsUpdatingProgress(true);
+    try {
+      const updatedVal = Math.min(100, Math.max(0, parseInt(newProgress) || 0));
+      await api.updateProject(id, { progress_percentage: updatedVal });
+      setProject(prev => ({ ...prev, progress_percentage: updatedVal }));
+      setIsProgressModalOpen(false);
+    } catch (err) {
+      alert(`Failed to update progress: ${err.message}`);
+    } finally {
+      setIsUpdatingProgress(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -207,20 +230,38 @@ const ProjectDetails = () => {
             {isInvestor ? (
               <button 
                 onClick={() => openInvestModalForPhase('', null)}
-                className="w-full bg-primary hover:bg-secondary text-white py-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                className="w-full bg-primary hover:bg-secondary text-white py-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 mb-6"
               >
                 <Send className="w-5 h-5" />
                 Request Investment
               </button>
             ) : !user ? (
-              <Link to="/login" className="w-full block text-center bg-gray-900 hover:bg-gray-800 text-white py-3.5 rounded-xl font-bold transition-all shadow-md">
+              <Link to="/login" className="w-full block text-center bg-gray-900 hover:bg-gray-800 text-white py-3.5 rounded-xl font-bold transition-all shadow-md mb-6">
                 Log in to Invest
               </Link>
             ) : (
-              <div className="w-full text-center bg-gray-50 text-gray-500 py-3.5 rounded-xl font-medium border border-gray-100">
+              <div className="w-full text-center bg-gray-50 text-gray-500 py-3.5 rounded-xl font-medium border border-gray-100 mb-6">
                 {isOwner ? 'You are the Owner' : 'Viewing as Entrepreneur'}
               </div>
             )}
+
+            {/* Project Progress Bar */}
+            <div className="pt-4 border-t border-gray-100">
+              <ProjectProgressBar progress={project.progress_percentage || 0} size="md" />
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewProgress(project.progress_percentage || 0);
+                    setIsProgressModalOpen(true);
+                  }}
+                  className="mt-3 text-xs font-semibold text-primary hover:underline flex items-center justify-center gap-1.5 w-full py-2 bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  Update Progress Percentage
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -583,6 +624,80 @@ const ProjectDetails = () => {
                 </div>
               </form>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Update Progress Percentage Modal (Owner Only) */}
+      {isProgressModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                Update Project Progress
+              </h3>
+              <button 
+                onClick={() => setIsProgressModalOpen(false)} 
+                className="text-gray-400 hover:text-gray-600 font-bold text-xl"
+              >
+                &times;
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateProgressSubmit} className="p-6 space-y-6">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-semibold text-gray-700">Completion Percentage</label>
+                  <span className="text-lg font-black text-primary">{newProgress}%</span>
+                </div>
+                
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  step="5"
+                  value={newProgress}
+                  onChange={(e) => setNewProgress(e.target.value)}
+                  className="w-full h-2.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary mb-4"
+                />
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500">Exact Value:</span>
+                  <input 
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={newProgress}
+                    onChange={(e) => setNewProgress(e.target.value)}
+                    className="w-20 px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-bold text-center"
+                  />
+                  <span className="text-sm font-bold">%</span>
+                </div>
+              </div>
+
+              {/* Visual Live Preview */}
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <ProjectProgressBar progress={newProgress} size="md" />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3 border-t border-gray-100">
+                <button 
+                  type="button" 
+                  onClick={() => setIsProgressModalOpen(false)}
+                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl font-medium"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isUpdatingProgress}
+                  className="bg-primary hover:bg-secondary text-white px-6 py-2 text-sm rounded-xl font-bold transition-all shadow-sm flex items-center gap-2"
+                >
+                  {isUpdatingProgress ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  Save Progress
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

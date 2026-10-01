@@ -4,6 +4,7 @@ import { Search, MapPin, Briefcase, Loader2, ArrowRight, Plus, Filter, Tag } fro
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { PROJECT_CATEGORIES } from '../constants/categories';
+import ProjectProgressBar from '../components/ProjectProgressBar';
 
 const Projects = () => {
   const { profile } = useAuth();
@@ -215,11 +216,11 @@ const Projects = () => {
                       </div>
                     </div>
                     
-                    <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
                       {project.project_description || 'No description provided for this project.'}
                     </p>
 
-                    <div className="space-y-2 mb-6">
+                    <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-500">
                         <MapPin className="h-4 w-4 mr-2 text-gray-400" />
                         {project.location || 'Location unverified'}
@@ -228,6 +229,11 @@ const Projects = () => {
                         <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
                         Stage: <span className="font-medium text-gray-900 ml-1">{project.startup_stage || 'Idea'}</span>
                       </div>
+                    </div>
+
+                    {/* Progress Bar Display */}
+                    <div className="pt-2 border-t border-gray-100">
+                      <ProjectProgressBar progress={project.progress_percentage || 0} size="sm" />
                     </div>
                   </div>
 
