@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Briefcase, Loader2, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Plus, Briefcase, Loader2, MoreVertical, Edit, Trash2, Layers } from 'lucide-react';
 import { api } from '../../lib/api';
 
 const MyProjects = () => {
@@ -116,8 +116,9 @@ const MyProjects = () => {
               </div>
 
               <div className="bg-gray-50 border-t border-gray-100 p-3 flex justify-between items-center">
-                <Link to={`/projects/${project.id}`} className="text-sm font-medium text-gray-600 hover:text-primary transition-colors px-3 py-1.5 rounded-md hover:bg-gray-100">
-                  View Public Page
+                <Link to={`/projects/${project.id}`} className="text-sm font-bold text-primary hover:text-secondary transition-colors px-3 py-1.5 rounded-md hover:bg-primary/5 flex items-center gap-1.5">
+                  <Layers className="w-4 h-4" />
+                  View & Manage Phases
                 </Link>
                 <div className="flex items-center space-x-1">
                   <button onClick={() => handleDelete(project.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Delete Project">

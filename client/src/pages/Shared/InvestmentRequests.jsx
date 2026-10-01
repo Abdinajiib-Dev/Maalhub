@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Loader2, DollarSign, MessageSquare, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Loader2, DollarSign, MessageSquare, Clock, CheckCircle, XCircle, AlertCircle, Layers } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -128,12 +128,23 @@ const InvestmentRequests = () => {
                     </Link>
                   </h3>
                   {getStatusBadge(request.status)}
+                  {request.phase && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                      <Layers className="w-3 h-3 text-blue-600" />
+                      Phase {request.phase.phase_number}: {request.phase.title}
+                    </span>
+                  )}
                 </div>
                 
                 <p className="text-sm text-gray-500 mb-4">
                   {isInvestor 
                     ? `Entrepreneur: ${request.entrepreneur?.full_name || 'Unknown'}` 
                     : `Investor: ${request.investor?.full_name || 'Unknown'}`}
+                  {request.phase && (
+                    <span className="ml-2 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                      Tranche Goal: ${request.phase.target_amount?.toLocaleString()}
+                    </span>
+                  )}
                 </p>
 
                 <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-xs sm:text-sm text-gray-700 border border-gray-100">
@@ -147,7 +158,9 @@ const InvestmentRequests = () => {
 
               {/* Amount & Actions */}
               <div className="w-full lg:w-64 flex flex-col items-start lg:items-end lg:text-right border-t lg:border-t-0 lg:border-l border-gray-100 pt-4 lg:pt-0 lg:pl-6">
-                <span className="block text-gray-500 text-xs sm:text-sm mb-0.5">Proposed Amount</span>
+                <span className="block text-gray-500 text-xs sm:text-sm mb-0.5">
+                  {request.phase ? `Offer for Phase ${request.phase.phase_number}` : 'Proposed Amount'}
+                </span>
                 <span className="text-2xl sm:text-3xl font-black text-gray-900 mb-4 lg:mb-6">${request.proposed_amount?.toLocaleString() || '0'}</span>
 
                 <div className="w-full space-y-2">

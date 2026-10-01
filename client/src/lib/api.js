@@ -87,6 +87,19 @@ export const api = {
   getMyProjects: () => fetchWithAuth('/projects/my-projects').then(res => (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [])),
   updateProject: (id, data) => fetchWithAuth(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProject: (id) => fetchWithAuth(`/projects/${id}`, { method: 'DELETE' }),
+
+  // Investment Phases
+  addProjectPhase: (projectId, data) => fetchWithAuth(`/projects/${projectId}/phases`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  updateProjectPhase: (projectId, phaseId, data) => fetchWithAuth(`/projects/${projectId}/phases/${phaseId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  deleteProjectPhase: (projectId, phaseId) => fetchWithAuth(`/projects/${projectId}/phases/${phaseId}`, {
+    method: 'DELETE',
+  }),
   
   // Investment Requests
   getInvestmentRequests: () => fetchWithAuth('/investment-requests').then(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),

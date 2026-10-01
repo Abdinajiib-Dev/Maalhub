@@ -94,7 +94,25 @@ CREATE TABLE public.project_documents (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 8. Saved Projects Table
+-- 8. Project Investment Phases Table (Funding Tranches)
+CREATE TABLE public.project_investment_phases (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE NOT NULL,
+    phase_number INT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    target_amount NUMERIC NOT NULL CHECK (target_amount > 0),
+    current_amount NUMERIC DEFAULT 0 CHECK (current_amount >= 0),
+    status TEXT NOT NULL DEFAULT 'Upcoming' CHECK (status IN ('Upcoming', 'Active', 'Funded', 'Completed')),
+    start_date DATE,
+    target_date DATE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_phases_project_id ON public.project_investment_phases(project_id);
+
+-- 9. Saved Projects Table
 CREATE TABLE public.saved_projects (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     investor_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
@@ -103,12 +121,13 @@ CREATE TABLE public.saved_projects (
     UNIQUE(investor_id, project_id)
 );
 
--- 9. Investment Requests Table
+-- 10. Investment Requests Table
 CREATE TABLE public.investment_requests (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     investor_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
     entrepreneur_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
     project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE NOT NULL,
+    phase_id UUID REFERENCES public.project_investment_phases(id) ON DELETE SET NULL,
     proposed_amount NUMERIC NOT NULL CHECK (proposed_amount > 0),
     message TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Accepted', 'Rejected', 'Withdrawn')),
@@ -153,6 +172,7 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR E
 CREATE TRIGGER update_ent_profiles_updated_at BEFORE UPDATE ON public.entrepreneur_profiles FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 CREATE TRIGGER update_inv_profiles_updated_at BEFORE UPDATE ON public.investor_profiles FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+CREATE TRIGGER update_phases_updated_at BEFORE UPDATE ON public.project_investment_phases FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 CREATE TRIGGER update_inv_req_updated_at BEFORE UPDATE ON public.investment_requests FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 CREATE TRIGGER update_conv_updated_at BEFORE UPDATE ON public.conversations FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
@@ -164,6 +184,7 @@ ALTER TABLE public.investor_industries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.investor_stages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.project_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.project_investment_phases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.investment_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
@@ -208,5 +229,15 @@ CREATE POLICY "Published projects are viewable by everyone" ON public.projects F
 CREATE POLICY "Entrepreneurs can insert projects" ON public.projects FOR INSERT WITH CHECK (auth.uid() = entrepreneur_id);
 CREATE POLICY "Entrepreneurs can update own projects" ON public.projects FOR UPDATE USING (auth.uid() = entrepreneur_id);
 CREATE POLICY "Entrepreneurs can delete own projects" ON public.projects FOR DELETE USING (auth.uid() = entrepreneur_id);
+
+-- Project Investment Phases
+CREATE POLICY "Phases are viewable by everyone" ON public.project_investment_phases FOR SELECT USING (true);
+CREATE POLICY "Entrepreneurs can manage phases for their projects" ON public.project_investment_phases FOR ALL USING (
+    EXISTS (
+        SELECT 1 FROM public.projects 
+        WHERE projects.id = project_investment_phases.project_id 
+        AND projects.entrepreneur_id = auth.uid()
+    )
+);
 
 -- Other tables will follow similar RLS where owners can manage their data.
