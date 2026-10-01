@@ -6,15 +6,20 @@ import { api } from '../../lib/api';
 import { PROJECT_CATEGORIES } from '../../constants/categories';
 
 const CreateProject = () => {
+<<<<<<< HEAD
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
     defaultValues: {
       progress_percentage: 0
     }
   });
+=======
+  const { register, handleSubmit, watch, formState: { errors } } = useForm();
+>>>>>>> ea68725a14de831d055a4626c4a81869e46f34a8
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+<<<<<<< HEAD
   const selectedCategoryName = watch("industry");
   const selectedCategoryObj = PROJECT_CATEGORIES.find(c => c.name === selectedCategoryName);
 
@@ -46,6 +51,22 @@ const CreateProject = () => {
     setPhases(prev => prev.filter((_, i) => i !== index));
   };
 
+=======
+  const fundingGoalWatch = watch('funding_goal', '');
+
+  // Investment Phases State
+  const [phases, setPhases] = useState([
+    {
+      phase_number: 1,
+      title: '',
+      target_amount: '',
+      description: '',
+      target_date: '',
+      status: 'Active'
+    }
+  ]);
+
+>>>>>>> ea68725a14de831d055a4626c4a81869e46f34a8
   const handlePhaseChange = (index, field, value) => {
     setPhases(prev => {
       const updated = [...prev];
@@ -54,13 +75,46 @@ const CreateProject = () => {
     });
   };
 
+<<<<<<< HEAD
+=======
+  const handleAddPhase = () => {
+    const nextNum = phases.length + 1;
+    setPhases(prev => [
+      ...prev,
+      {
+        phase_number: nextNum,
+        title: '',
+        target_amount: '',
+        description: '',
+        target_date: '',
+        status: 'Upcoming'
+      }
+    ]);
+  };
+
+  const handleRemovePhase = (index) => {
+    if (phases.length <= 1) return;
+    setPhases(prev =>
+      prev.filter((_, i) => i !== index).map((p, i) => ({ ...p, phase_number: i + 1 }))
+    );
+  };
+
+  const totalPhasesAmount = phases.reduce((sum, p) => sum + (parseFloat(p.target_amount) || 0), 0);
+  const goalNum = parseFloat(fundingGoalWatch) || 0;
+  const remainingGoal = goalNum - totalPhasesAmount;
+
+>>>>>>> ea68725a14de831d055a4626c4a81869e46f34a8
   const handleAutoDistributeRemaining = () => {
     if (remainingGoal <= 0 || phases.length === 0) return;
     const lastIndex = phases.length - 1;
     const currentLastAmount = parseFloat(phases[lastIndex].target_amount) || 0;
+<<<<<<< HEAD
     const newLastAmount = currentLastAmount + remainingGoal;
 
     handlePhaseChange(lastIndex, 'target_amount', newLastAmount.toString());
+=======
+    handlePhaseChange(lastIndex, 'target_amount', currentLastAmount + remainingGoal);
+>>>>>>> ea68725a14de831d055a4626c4a81869e46f34a8
   };
 
   const onSubmit = async (data) => {
@@ -68,12 +122,12 @@ const CreateProject = () => {
     setError(null);
     try {
       let validPhases = phases
-        .filter(p => p.title.trim() && parseFloat(p.target_amount) > 0)
+        .filter(p => p.title.trim() || parseFloat(p.target_amount) > 0)
         .map((p, index) => ({
           phase_number: index + 1,
-          title: p.title.trim(),
+          title: p.title.trim() || `Phase ${index + 1}`,
           description: p.description?.trim() || '',
-          target_amount: parseFloat(p.target_amount),
+          target_amount: parseFloat(p.target_amount) || 0,
           current_amount: 0,
           status: index === 0 ? 'Active' : (p.status || 'Upcoming'),
           target_date: p.target_date || null
@@ -94,8 +148,13 @@ const CreateProject = () => {
       const payload = {
         ...data,
         funding_goal: parseFloat(data.funding_goal),
+<<<<<<< HEAD
         progress_percentage: Math.min(100, Math.max(0, parseInt(data.progress_percentage) || 0)),
         phases: validPhases,
+=======
+        phases: validPhases,
+        // By default, let's publish it for simplicity, or we can make it a Draft.
+>>>>>>> ea68725a14de831d055a4626c4a81869e46f34a8
         status: 'Published'
       };
 
@@ -167,7 +226,17 @@ const CreateProject = () => {
                 )}
               </div>
 
-              <div className="md:col-span-2">
+              <div>
+                <label className="label">Category / Industry *</label>
+                <select {...register("industry", { required: true })} className="input-field">
+                  {PROJECT_CATEGORIES.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+                {errors.industry && <span className="text-xs text-red-500">Category is required</span>}
+              </div>
+
+              <div>
                 <label className="label">Funding Goal (USD) *</label>
                 <input 
                   type="number" 
@@ -245,9 +314,6 @@ const CreateProject = () => {
                   <Layers className="w-5 h-5 text-primary" />
                   Investment Phases (Funding Tranches)
                 </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  Break your funding goal into milestone phases. Investors can fund specific phases or the overall project.
-                </p>
               </div>
 
               <button
@@ -282,12 +348,11 @@ const CreateProject = () => {
                   />
                 </div>
                 {remainingGoal > 0 && (
-                  <div className="mt-2.5 flex items-center justify-between text-xs text-gray-500">
-                    <span>Tip: Allocate the full goal across phases so investors know exact milestone budgets.</span>
+                  <div className="mt-2.5 flex items-center justify-end text-xs">
                     <button
                       type="button"
                       onClick={handleAutoDistributeRemaining}
-                      className="text-primary hover:underline font-medium ml-2"
+                      className="text-primary hover:underline font-medium"
                     >
                       Fill remaining ${remainingGoal.toLocaleString()} to last phase
                     </button>
@@ -323,7 +388,7 @@ const CreateProject = () => {
                         type="text"
                         value={phase.title}
                         onChange={(e) => handlePhaseChange(index, 'title', e.target.value)}
-                        placeholder={`e.g. Phase ${index + 1}: Prototype Development`}
+                        placeholder="Phase Title"
                         className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
                       />
                     </div>
@@ -346,12 +411,12 @@ const CreateProject = () => {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Milestones & Deliverables</label>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">Purpose of Funds</label>
                       <textarea
                         rows={2}
                         value={phase.description}
                         onChange={(e) => handlePhaseChange(index, 'description', e.target.value)}
-                        placeholder="What specific deliverables will be unlocked with this phase of funding?"
+                        placeholder="Describe how the funds for this phase will be utilized..."
                         className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
                       />
                     </div>
