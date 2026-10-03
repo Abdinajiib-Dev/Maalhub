@@ -109,19 +109,6 @@ const Dashboard = () => {
         {/* Card 2 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-            <DollarSign size={24} />
-          </div>
-          <p className="text-sm font-medium text-gray-500 mb-1">Total Funding Requested</p>
-          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">${totalFundingGoal.toLocaleString()}</h3>
-          <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
-            <span>Across all projects</span>
-            <ArrowRight size={14} />
-          </div>
-        </div>
-
-        {/* Card 3 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
-          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
             <Users size={24} />
           </div>
           <p className="text-sm font-medium text-gray-500 mb-1">Investment Requests</p>
@@ -132,7 +119,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Card 4 */}
+        {/* Card 3 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
             <CheckCircle size={24} />
@@ -141,6 +128,19 @@ const Dashboard = () => {
           <h3 className="text-3xl font-bold text-gray-900 mb-4">{acceptedInvestments}</h3>
           <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
             <span>Total accepted</span>
+            <ArrowRight size={14} />
+          </div>
+        </div>
+
+        {/* Card 4 */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
+          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+            <DollarSign size={24} />
+          </div>
+          <p className="text-sm font-medium text-gray-500 mb-1">Total Funding Requested</p>
+          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">${totalFundingGoal.toLocaleString()}</h3>
+          <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
+            <span>Across all projects</span>
             <ArrowRight size={14} />
           </div>
         </div>
