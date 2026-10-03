@@ -8,7 +8,8 @@ import {
   TrendingUp,
   CheckCircle,
   FolderOpen,
-  ArrowRight
+  ArrowRight,
+  Briefcase
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -68,12 +69,23 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
-            Welcome back, {userName}! {userRoleDisplay}
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Welcome back, {userName}!
           </h1>
           <p className="text-gray-500 mt-1 text-sm leading-normal">
             Manage your portfolio and discover new opportunities from your dashboard.
           </p>
+
+          {/* User Role Badge */}
+          <div className="mt-3.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300/80 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            {rawRole.toLowerCase() === 'investor' ? (
+              <TrendingUp size={14} className="text-emerald-700" />
+            ) : (
+              <Briefcase size={14} className="text-emerald-700" />
+            )}
+            <span className="capitalize tracking-wide font-medium">{userRoleDisplay}</span>
+          </div>
         </div>
         <Link 
           to="/projects" 
