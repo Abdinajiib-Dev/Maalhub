@@ -1,7 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { supabase } from '../db/supabase.js';
-import { requireAuth } from '../middleware/authMiddleware.js';
+import { requireAuth, optionalAuth } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 
 const router = express.Router();
@@ -33,18 +33,21 @@ const getPagination = (page, size) => {
   return { from, to };
 };
 
-// Get projects (scoped by user role)
-router.get('/', requireAuth, async (req, res, next) => {
+// Get projects (scoped by user role if authenticated, otherwise all published)
+router.get('/', optionalAuth, async (req, res, next) => {
   try {
     const { page, limit } = req.query;
     const { from, to } = getPagination(page, limit);
 
-    // Fetch user profile to determine role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', req.user.id)
-      .single();
+    let profile = null;
+    if (req.user?.id) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', req.user.id)
+        .single();
+      profile = data;
+    }
 
     let query = supabase
       .from('projects')

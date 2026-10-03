@@ -55,3 +55,50 @@ export const requireAuth = async (req, res, next) => {
     res.status(500).json({ error: 'Internal server error during authentication' });
   }
 };
+
+export const optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return next();
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token || token === 'null' || token === 'undefined') {
+      return next();
+    }
+
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      if (!error && user) {
+        req.user = user;
+        return next();
+      }
+    } catch (e) {}
+
+    try {
+      const base64Url = token.split('.')[1];
+      if (base64Url) {
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+        const decoded = JSON.parse(jsonPayload);
+        if (decoded && (decoded.sub || decoded.id)) {
+          req.user = {
+            id: decoded.sub || decoded.id,
+            email: decoded.email,
+            user_metadata: decoded.user_metadata || {}
+          };
+        }
+      }
+    } catch (e) {}
+
+    return next();
+  } catch (err) {
+    return next();
+  }
+};
