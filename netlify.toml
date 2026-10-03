@@ -7,10 +7,6 @@
   publish = "dist"
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> ba338bb (Save local changes and remove fly.io)
 # Proxy API requests to Northflank backend
 [[redirects]]
   from = "/api/*"

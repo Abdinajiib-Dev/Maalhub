@@ -9,13 +9,10 @@ import {
   CheckCircle,
   FolderOpen,
   ArrowRight,
-<<<<<<< HEAD
-  Briefcase
-=======
+  Briefcase,
   Layers,
   FileText,
   CheckCircle2
->>>>>>> ba338bb (Save local changes and remove fly.io)
 } from 'lucide-react';
 import ProjectProgressBar from '../../components/ProjectProgressBar';
 
@@ -125,31 +122,18 @@ const Dashboard = () => {
         {/* Card 2 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-<<<<<<< HEAD
-            <TrendingUp size={24} />
-          </div>
-          <p className="text-sm font-medium text-gray-500 mb-1">Active Offers</p>
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">{activeRequests.length}</h3>
-          <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
-            <span>Pending & Accepted</span>
-=======
             <DollarSign size={24} />
           </div>
           <p className="text-sm font-medium text-gray-500 mb-1">Total Invested</p>
           <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">${totalInvestedCapital.toLocaleString()}</h3>
           <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
             <span>Committed capital</span>
->>>>>>> ba338bb (Save local changes and remove fly.io)
             <ArrowRight size={14} />
           </div>
         </div>
 
         {/* Card 3 */}
-<<<<<<< HEAD
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
-=======
         <Link to="/investor/requests" className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group hover:border-gray-200 transition-all">
->>>>>>> ba338bb (Save local changes and remove fly.io)
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
             <CheckCircle size={24} />
           </div>
@@ -159,22 +143,6 @@ const Dashboard = () => {
             <span>Awaiting response</span>
             <ArrowRight size={14} />
           </div>
-<<<<<<< HEAD
-        </div>
-
-        {/* Card 4 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
-          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-            <DollarSign size={24} />
-          </div>
-          <p className="text-sm font-medium text-gray-500 mb-1">Total Proposed</p>
-          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">${totalOffered.toLocaleString()}</h3>
-          <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
-            <span>Active capital</span>
-            <ArrowRight size={14} />
-          </div>
-        </div>
-=======
         </Link>
 
         {/* Card 4 */}
@@ -189,7 +157,6 @@ const Dashboard = () => {
             <ArrowRight size={14} />
           </div>
         </Link>
->>>>>>> ba338bb (Save local changes and remove fly.io)
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
