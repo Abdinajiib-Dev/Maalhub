@@ -37,7 +37,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   optionsSuccessStatus: 200
 }));
-app.options('*', cors());
 
 app.use(morgan('dev', {
   skip: (req, res) => req.originalUrl === '/api/messages/unread' || req.originalUrl === '/api/health'
