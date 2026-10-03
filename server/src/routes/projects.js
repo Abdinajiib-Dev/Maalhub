@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { supabase } from '../db/supabase.js';
 import { requireAuth, optionalAuth } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
+import { getReportsForProject, saveReportForProject, deleteReportById } from '../utils/reportsHelper.js';
 
 const router = express.Router();
 
@@ -436,6 +437,92 @@ router.delete('/:id/phases/:phaseId', requireAuth, async (req, res, next) => {
       .eq('project_id', projectId);
 
     if (error) throw error;
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get reports for a project
+router.get('/:id/reports', requireAuth, async (req, res, next) => {
+  try {
+    const projectId = req.params.id;
+    const reports = await getReportsForProject(projectId);
+    res.json(reports);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Create a progress report for a project (Entrepreneur only)
+router.post('/:id/reports', requireAuth, async (req, res, next) => {
+  try {
+    const projectId = req.params.id;
+    const { title, summary, key_achievements, next_steps, phase_id, report_type, attachment_url, progress_percentage } = req.body;
+
+    if (!title || !summary) {
+      return res.status(400).json({ error: 'Report title and summary are required' });
+    }
+
+    // Check ownership
+    const { data: project, error: pErr } = await supabase
+      .from('projects')
+      .select('entrepreneur_id')
+      .eq('id', projectId)
+      .single();
+
+    if (pErr || !project) return res.status(404).json({ error: 'Project not found' });
+    if (project.entrepreneur_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden: Only the project owner can post reports' });
+    }
+
+    // Optionally update project progress percentage if passed
+    if (progress_percentage !== undefined && progress_percentage !== null) {
+      const val = Math.min(100, Math.max(0, parseInt(progress_percentage) || 0));
+      try {
+        await supabase
+          .from('projects')
+          .update({ progress_percentage: val, current_progress: `${val}%` })
+          .eq('id', projectId);
+      } catch (progErr) {
+        console.warn('Progress percentage update warning:', progErr.message);
+      }
+    }
+
+    const report = await saveReportForProject(projectId, req.user.id, {
+      title,
+      summary,
+      key_achievements: key_achievements || null,
+      next_steps,
+      phase_id,
+      report_type: report_type || 'Progress',
+      attachment_url
+    });
+
+    res.status(201).json(report);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete a report (Entrepreneur only)
+router.delete('/:id/reports/:reportId', requireAuth, async (req, res, next) => {
+  try {
+    const { id: projectId, reportId } = req.params;
+
+    // Verify ownership
+    const { data: project, error: pErr } = await supabase
+      .from('projects')
+      .select('entrepreneur_id')
+      .eq('id', projectId)
+      .single();
+
+    if (pErr || !project) return res.status(404).json({ error: 'Project not found' });
+    if (project.entrepreneur_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden: Only the project owner can delete reports' });
+    }
+
+    await deleteReportById(reportId);
     res.status(204).send();
   } catch (error) {
     next(error);

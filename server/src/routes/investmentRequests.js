@@ -1,8 +1,114 @@
 import express from 'express';
 import { supabase } from '../db/supabase.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
+import { getReportsForProject } from '../utils/reportsHelper.js';
 
 const router = express.Router();
+
+// Get investor's portfolio of investments (with project progress, phase details, and entrepreneur reports)
+router.get('/my-investments', requireAuth, async (req, res) => {
+  try {
+    const investorId = req.user.id;
+
+    // 1. Fetch investment requests made by this investor
+    let requests = [];
+    try {
+      const { data, error } = await supabase
+        .from('investment_requests')
+        .select(`
+          *,
+          project:projects(
+            id,
+            project_name,
+            business_name,
+            industry,
+            startup_stage,
+            location,
+            funding_goal,
+            project_description,
+            status,
+            project_image_url,
+            progress_percentage,
+            current_progress,
+            created_at
+          ),
+          phase:project_investment_phases(
+            id,
+            phase_number,
+            title,
+            description,
+            target_amount,
+            current_amount,
+            status,
+            target_date
+          ),
+          entrepreneur:profiles!investment_requests_entrepreneur_id_fkey(
+            id,
+            full_name,
+            email,
+            city,
+            country,
+            profile_photo_url
+          )
+        `)
+        .eq('investor_id', investorId)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        requests = data;
+      }
+    } catch (joinErr) {
+      // Fallback
+    }
+
+    if (!requests || requests.length === 0) {
+      const { data: fbData } = await supabase
+        .from('investment_requests')
+        .select(`
+          *,
+          project:projects(*),
+          entrepreneur:profiles!investment_requests_entrepreneur_id_fkey(id, full_name, email, profile_photo_url)
+        `)
+        .eq('investor_id', investorId)
+        .order('created_at', { ascending: false });
+      requests = fbData || [];
+    }
+
+    // 2. Enrich each investment with all phases and entrepreneur reports
+    const enriched = await Promise.all(
+      requests.map(async (inv) => {
+        const projectId = inv.project_id || inv.project?.id;
+        let allPhases = [];
+        let reports = [];
+
+        if (projectId) {
+          try {
+            const { data: pData } = await supabase
+              .from('project_investment_phases')
+              .select('*')
+              .eq('project_id', projectId)
+              .order('phase_number', { ascending: true });
+            allPhases = pData || [];
+          } catch (e) {
+            // Ignore
+          }
+
+          reports = await getReportsForProject(projectId);
+        }
+
+        return {
+          ...inv,
+          all_phases: allPhases,
+          reports: reports
+        };
+      })
+    );
+
+    res.json(enriched);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Get investment requests involving the authenticated user
 router.get('/', requireAuth, async (req, res) => {

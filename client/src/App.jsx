@@ -21,6 +21,7 @@ import InvestmentRequests from './pages/Shared/InvestmentRequests';
 import Messages from './pages/Shared/Messages';
 import Placeholder from './pages/Shared/Placeholder';
 import ExploreProjects from './pages/Investor/ExploreProjects';
+import MyInvestments from './pages/Investor/MyInvestments';
 import Profile from './pages/Shared/Profile';
 import Settings from './pages/Shared/Settings';
 import { AuthProvider } from './contexts/AuthContext';
@@ -80,7 +81,8 @@ function App() {
             </ProtectedRoute>
           }>
             <Route path="dashboard" element={<InvestorDashboard />} />
-            <Route path="projects" element={<ExploreProjects />} />
+            <Route path="investments" element={<MyInvestments />} />
+            <Route path="projects" element={<MyInvestments />} />
             <Route path="requests" element={<InvestmentRequests />} />
             <Route path="messages" element={<Messages />} />
             <Route path="profile" element={<Profile />} />

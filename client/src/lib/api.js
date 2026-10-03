@@ -116,8 +116,9 @@ export const api = {
     method: 'DELETE',
   }),
   
-  // Investment Requests
+  // Investment Requests & Portfolio
   getInvestmentRequests: () => fetchWithAuth('/investment-requests').then(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
+  getMyInvestments: () => fetchWithAuth('/investment-requests/my-investments').then(res => (Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [])),
   createInvestmentRequest: (data) => fetchWithAuth('/investment-requests', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -125,6 +126,16 @@ export const api = {
   updateRequestStatus: (id, status) => fetchWithAuth(`/investment-requests/${id}/status`, {
     method: 'PUT',
     body: JSON.stringify({ status }),
+  }),
+
+  // Progress Reports (from Entrepreneurs)
+  getProjectReports: (projectId) => fetchWithAuth(`/projects/${projectId}/reports`).then(res => (Array.isArray(res) ? res : [])),
+  createProjectReport: (projectId, data) => fetchWithAuth(`/projects/${projectId}/reports`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  deleteProjectReport: (projectId, reportId) => fetchWithAuth(`/projects/${projectId}/reports/${reportId}`, {
+    method: 'DELETE',
   }),
   
   // Saved Projects

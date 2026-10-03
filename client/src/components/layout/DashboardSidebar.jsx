@@ -62,7 +62,11 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
 
   const navLinks = [
     { name: 'Dashboard', path: `${basePath}/dashboard`, icon: Home },
-    { name: isEntrepreneur ? 'My Projects' : 'Explore Projects', path: `${basePath}/projects`, icon: Kanban },
+    { 
+      name: isEntrepreneur ? 'My Projects' : 'My Investments', 
+      path: isEntrepreneur ? `${basePath}/projects` : `${basePath}/investments`, 
+      icon: isEntrepreneur ? Kanban : TrendingUp 
+    },
     { name: 'Investment Requests', path: `${basePath}/requests`, icon: Users },
     { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
     { name: 'Profile', path: `${basePath}/profile`, icon: User },

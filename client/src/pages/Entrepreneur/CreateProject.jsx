@@ -24,7 +24,7 @@ const CreateProject = () => {
   const currentProgress = watch("progress_percentage") || 0;
 
   const [phases, setPhases] = useState([
-    { title: 'Phase 1: Initial Growth & Launch', description: 'Initial funding tranche for milestone execution.', target_amount: '', target_date: '' }
+    { title: 'Phase 1: Initial Growth & Launch', description: 'Initial funding tranche for phase execution.', target_amount: '', target_date: '' }
   ]);
 
   const totalPhasesAmount = phases.reduce((sum, p) => sum + (parseFloat(p.target_amount) || 0), 0);
@@ -83,7 +83,7 @@ const CreateProject = () => {
         validPhases = [{
           phase_number: 1,
           title: 'Phase 1: Initial Growth & Launch',
-          description: 'Initial funding tranche for milestone execution.',
+          description: 'Initial funding tranche for phase execution.',
           target_amount: parseFloat(data.funding_goal),
           current_amount: 0,
           status: 'Active',

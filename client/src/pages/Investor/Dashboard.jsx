@@ -9,26 +9,40 @@ import {
   CheckCircle,
   FolderOpen,
   ArrowRight,
+<<<<<<< HEAD
   Briefcase
+=======
+  Layers,
+  FileText,
+  CheckCircle2
+>>>>>>> ba338bb (Save local changes and remove fly.io)
 } from 'lucide-react';
+import ProjectProgressBar from '../../components/ProjectProgressBar';
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const [savedProjects, setSavedProjects] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [myInvestments, setMyInvestments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const saved = await api.getSavedProjects();
+        const [saved, reqs, invs] = await Promise.all([
+          api.getSavedProjects().catch(() => []),
+          api.getInvestmentRequests().catch(() => []),
+          api.getMyInvestments().catch(() => [])
+        ]);
+
         const validSaved = Array.isArray(saved) ? saved.filter(s => s && s.project) : [];
         setSavedProjects(validSaved);
         
-        const reqs = await api.getInvestmentRequests();
         const validReqs = Array.isArray(reqs) ? reqs.filter(r => r && (r.investor_id === user?.id)) : [];
         setRequests(validReqs);
+
+        setMyInvestments(Array.isArray(invs) ? invs : []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -56,9 +70,9 @@ const Dashboard = () => {
   }
 
   const activeRequests = requests.filter(r => r.status === 'Pending' || r.status === 'Accepted');
-  const totalOffered = requests
-    .filter(r => r.status !== 'Rejected' && r.status !== 'Withdrawn')
-    .reduce((sum, r) => sum + Number(r.proposed_amount), 0);
+  const acceptedInvestments = myInvestments.filter(i => i.status === 'Accepted');
+  const totalInvestedCapital = acceptedInvestments.reduce((sum, i) => sum + Number(i.proposed_amount || 0), 0);
+  const totalReportsCount = myInvestments.reduce((sum, i) => sum + (Array.isArray(i.reports) ? i.reports.length : 0), 0);
 
   const userName = profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'User';
   const rawRole = profile?.role || user?.user_metadata?.role || 'investor';
@@ -96,44 +110,56 @@ const Dashboard = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-6 sm:mb-8">
         {/* Card 1 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
+        <Link to="/investor/investments" className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group hover:border-gray-200 transition-all">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-            <Bookmark size={24} />
+            <TrendingUp size={24} />
           </div>
-          <p className="text-sm font-medium text-gray-500 mb-1">Saved Projects</p>
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">{savedProjects.length}</h3>
+          <p className="text-sm font-medium text-gray-500 mb-1">Active Investments</p>
+          <h3 className="text-3xl font-bold text-gray-900 mb-4">{acceptedInvestments.length}</h3>
           <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
-            <span>Watchlist</span>
+            <span>Portfolio deals</span>
             <ArrowRight size={14} />
           </div>
-        </div>
+        </Link>
         
         {/* Card 2 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+<<<<<<< HEAD
             <TrendingUp size={24} />
           </div>
           <p className="text-sm font-medium text-gray-500 mb-1">Active Offers</p>
           <h3 className="text-3xl font-bold text-gray-900 mb-4">{activeRequests.length}</h3>
           <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
             <span>Pending & Accepted</span>
+=======
+            <DollarSign size={24} />
+          </div>
+          <p className="text-sm font-medium text-gray-500 mb-1">Total Invested</p>
+          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">${totalInvestedCapital.toLocaleString()}</h3>
+          <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
+            <span>Committed capital</span>
+>>>>>>> ba338bb (Save local changes and remove fly.io)
             <ArrowRight size={14} />
           </div>
         </div>
 
         {/* Card 3 */}
+<<<<<<< HEAD
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
+=======
+        <Link to="/investor/requests" className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group hover:border-gray-200 transition-all">
+>>>>>>> ba338bb (Save local changes and remove fly.io)
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
             <CheckCircle size={24} />
           </div>
-          <p className="text-sm font-medium text-gray-500 mb-1">Completed Deals</p>
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">
-            {requests.filter(r => r.status === 'Accepted').length}
-          </h3>
+          <p className="text-sm font-medium text-gray-500 mb-1">Pending Offers</p>
+          <h3 className="text-3xl font-bold text-gray-900 mb-4">{requests.filter(r => r.status === 'Pending').length}</h3>
           <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
-            <span>Successful deals</span>
+            <span>Awaiting response</span>
             <ArrowRight size={14} />
           </div>
+<<<<<<< HEAD
         </div>
 
         {/* Card 4 */}
@@ -148,53 +174,123 @@ const Dashboard = () => {
             <ArrowRight size={14} />
           </div>
         </div>
+=======
+        </Link>
+
+        {/* Card 4 */}
+        <Link to="/investor/investments" className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group hover:border-gray-200 transition-all">
+          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+            <FileText size={24} />
+          </div>
+          <p className="text-sm font-medium text-gray-500 mb-1">Founder Reports</p>
+          <h3 className="text-3xl font-bold text-gray-900 mb-4">{totalReportsCount}</h3>
+          <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
+            <span>Progress updates</span>
+            <ArrowRight size={14} />
+          </div>
+        </Link>
+>>>>>>> ba338bb (Save local changes and remove fly.io)
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-        {/* Left Column - Saved Projects */}
+        {/* Left Column - My Investments (Progress, Phases & Reports) */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Saved Projects</h2>
-            <Link to="/investor/projects" className="text-xs sm:text-sm font-medium text-gray-500 hover:text-primary border border-gray-200 px-3 py-1.5 rounded-md transition-colors">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">My Investments</h2>
+              <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                {myInvestments.length}
+              </span>
+            </div>
+            <Link to="/investor/investments" className="text-xs sm:text-sm font-medium text-gray-500 hover:text-primary border border-gray-200 px-3 py-1.5 rounded-md transition-colors">
               View All
             </Link>
           </div>
           
           <div className="space-y-6">
-            {savedProjects.slice(0, 3).map((item) => (
-              <div key={item.id} className="flex flex-col sm:flex-row gap-4 sm:gap-5 pb-6 border-b border-gray-50 last:border-0 last:pb-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 shadow-sm border border-gray-100">
-                  {item.project?.project_image_url ? (
-                    <img src={item.project.project_image_url} alt={item.project.project_name || 'Project'} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400"><FolderOpen size={28}/></div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 flex flex-col sm:flex-row justify-between gap-4">
-                  <div className="flex flex-col justify-between py-0.5">
+            {myInvestments.slice(0, 3).map((inv) => {
+              const project = inv.project || {};
+              const latestReport = Array.isArray(inv.reports) && inv.reports.length > 0 ? inv.reports[0] : null;
+
+              return (
+                <div key={inv.id} className="flex flex-col sm:flex-row gap-4 sm:gap-5 pb-6 border-b border-gray-50 last:border-0 last:pb-0">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 shadow-sm border border-gray-100">
+                    {project.project_image_url ? (
+                      <img src={project.project_image_url} alt={project.project_name || 'Project'} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400"><FolderOpen size={28}/></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
                     <div>
-                      <h3 className="font-bold text-gray-900 text-sm truncate mb-1">{item.project?.project_name || 'Untitled Project'}</h3>
-                      <p className="text-xs text-gray-500">{item.project?.industry || 'N/A'}</p>
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-bold text-gray-900 text-sm truncate mr-2">
+                          {project.project_name || 'Untitled Project'}
+                        </h3>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                          inv.status === 'Accepted' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {inv.status}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                        <span>{project.industry || 'General'}</span>
+                        {inv.phase && (
+                          <>
+                            <span>•</span>
+                            <span className="font-medium text-blue-600">Phase {inv.phase.phase_number}</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="mb-2">
+                        <ProjectProgressBar progress={project.progress_percentage || 0} size="sm" />
+                      </div>
+
+                      {/* Latest Report Preview */}
+                      {latestReport ? (
+                        <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg truncate flex items-center gap-1.5">
+                          <FileText size={12} className="text-primary flex-shrink-0" />
+                          <span className="truncate"><strong>Update:</strong> {latestReport.title}</span>
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-gray-400">
+                          No founder reports posted yet
+                        </div>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-2 sm:mt-0">
-                      Saved on {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  </div>
-                  <div className="w-full sm:w-32 flex flex-col justify-end py-0.5">
-                    <div className="flex gap-2 justify-start sm:justify-end mt-2 sm:mt-0">
-                      <Link to={`/projects/${item.project_id}`} className="px-3 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors">View</Link>
+
+                    <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-50">
+                      <span className="text-xs font-bold text-gray-900">
+                        ${Number(inv.proposed_amount).toLocaleString()}
+                      </span>
+                      <Link 
+                        to="/investor/investments" 
+                        className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                      >
+                        Track Details <ArrowRight size={12} />
+                      </Link>
                     </div>
                   </div>
                 </div>
+              );
+            })}
+
+            {myInvestments.length === 0 && (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-500 mb-2">You haven't backed any ventures yet.</p>
+                <Link to="/projects" className="text-xs font-bold text-primary hover:underline">
+                  Discover investment opportunities →
+                </Link>
               </div>
-            ))}
-            {savedProjects.length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-4">You haven't saved any projects yet.</p>
             )}
           </div>
+
           <div className="mt-6 text-center">
-            <Link to="/investor/projects" className="text-sm font-bold text-primary hover:text-secondary flex items-center justify-center gap-2">
-              View All Saved Projects <ArrowRight size={16} />
+            <Link to="/investor/investments" className="text-sm font-bold text-primary hover:text-secondary flex items-center justify-center gap-2">
+              View All Investments, Phases & Reports <ArrowRight size={16} />
             </Link>
           </div>
         </div>

@@ -16,7 +16,10 @@ import {
   ArrowRight,
   ShieldCheck,
   TrendingUp,
-  Edit3
+  Edit3,
+  FileText,
+  PlusCircle,
+  Trash2
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -62,12 +65,79 @@ const ProjectDetails = () => {
     }
   };
 
+  // Report state (for entrepreneur owners and investors)
+  const [reports, setReports] = useState([]);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportForm, setReportForm] = useState({
+    title: '',
+    summary: '',
+    key_achievements: '',
+    next_steps: '',
+    phase_id: '',
+    report_type: 'Progress',
+    progress_percentage: ''
+  });
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [reportError, setReportError] = useState('');
+
+  const fetchReports = async () => {
+    try {
+      const repData = await api.getProjectReports(id);
+      setReports(Array.isArray(repData) ? repData : []);
+    } catch (err) {
+      // Ignore
+    }
+  };
+
+  const handleReportSubmit = async (e) => {
+    e.preventDefault();
+    if (!reportForm.title || !reportForm.summary) {
+      setReportError('Please fill in both the report title and summary.');
+      return;
+    }
+    setIsSubmittingReport(true);
+    setReportError('');
+    try {
+      const newRep = await api.createProjectReport(id, reportForm);
+      setReports(prev => [newRep, ...prev]);
+      if (reportForm.progress_percentage !== '') {
+        const val = Math.min(100, Math.max(0, parseInt(reportForm.progress_percentage) || 0));
+        setProject(prev => ({ ...prev, progress_percentage: val }));
+      }
+      setIsReportModalOpen(false);
+      setReportForm({
+        title: '',
+        summary: '',
+        key_achievements: '',
+        next_steps: '',
+        phase_id: '',
+        report_type: 'Progress',
+        progress_percentage: ''
+      });
+    } catch (err) {
+      setReportError(err.message || 'Failed to submit report');
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
+
+  const handleDeleteReport = async (reportId) => {
+    if (!window.confirm('Are you sure you want to delete this report?')) return;
+    try {
+      await api.deleteProjectReport(id, reportId);
+      setReports(prev => prev.filter(r => r.id !== reportId));
+    } catch (err) {
+      alert(`Failed to delete report: ${err.message}`);
+    }
+  };
+
   useEffect(() => {
     const fetchProjectDetails = async () => {
       try {
         setLoading(true);
         const data = await api.getProject(id);
         setProject(data);
+        await fetchReports();
       } catch (err) {
         setError(err.message || 'Failed to load project details');
       } finally {
@@ -276,7 +346,7 @@ const ProjectDetails = () => {
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <Layers className="w-6 h-6 text-primary" />
-                    Investment Phases & Milestones
+                    Investment Phases & Roadmap
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">
                     Structured funding tranches and deliverables for this venture.
@@ -354,7 +424,7 @@ const ProjectDetails = () => {
                               {phase.target_date && (
                                 <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                                   <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                                  Target Milestone Date: {new Date(phase.target_date).toLocaleDateString()}
+                                  Target Completion Date: {new Date(phase.target_date).toLocaleDateString()}
                                 </p>
                               )}
                             </div>
@@ -421,6 +491,115 @@ const ProjectDetails = () => {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </section>
+
+            {/* PROGRESS REPORTS & ENTREPRENEUR UPDATES SECTION */}
+            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 border-b pb-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <FileText className="w-6 h-6 text-primary" />
+                    Progress Reports & Updates
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Official progress and updates posted by the entrepreneur.
+                  </p>
+                </div>
+                {isOwner && (
+                  <button
+                    onClick={() => {
+                      setReportError('');
+                      setReportForm(prev => ({
+                        ...prev,
+                        progress_percentage: project?.progress_percentage ?? ''
+                      }));
+                      setIsReportModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    Post Progress Report
+                  </button>
+                )}
+              </div>
+
+              {reports.length === 0 ? (
+                <div className="p-8 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                  <FileText className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 text-sm font-medium">No progress reports published yet.</p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    {isOwner 
+                      ? 'Share progress, phase completions, and updates with your investors.' 
+                      : 'The entrepreneur will share periodic progress reports and key achievements here.'}
+                  </p>
+                  {isOwner && (
+                    <button
+                      onClick={() => setIsReportModalOpen(true)}
+                      className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline"
+                    >
+                      <PlusCircle className="w-4 h-4" /> Post your first report
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reports.map((rep) => (
+                    <div key={rep.id} className="p-5 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-all shadow-xs">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                            rep.report_type === 'Achievements' ? 'bg-amber-100 text-amber-800' :
+                            rep.report_type === 'Financial' ? 'bg-emerald-100 text-emerald-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {rep.report_type === 'Achievements' ? 'Key Achievements' : (rep.report_type || 'Progress')}
+                          </span>
+                          {rep.phase && (
+                            <span className="text-[11px] font-semibold bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full">
+                              Phase {rep.phase.phase_number}: {rep.phase.title}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(rep.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
+
+                        {isOwner && (
+                          <button
+                            onClick={() => handleDeleteReport(rep.id)}
+                            className="text-gray-400 hover:text-red-500 p-1 rounded transition-colors"
+                            title="Delete report"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+
+                      <h4 className="text-lg font-bold text-gray-900 mb-2">{rep.title}</h4>
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-3">{rep.summary}</p>
+
+                      {rep.key_achievements && (
+                        <div className="mt-3 p-3 bg-green-50/70 border border-green-200 rounded-lg text-xs text-green-900">
+                          <strong className="block font-bold mb-1 flex items-center gap-1.5 text-green-800">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Key Achievements:
+                          </strong>
+                          <span className="whitespace-pre-line">{rep.key_achievements}</span>
+                        </div>
+                      )}
+
+                      {rep.next_steps && (
+                        <div className="mt-2 p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-900">
+                          <strong className="block font-bold mb-1 flex items-center gap-1.5 text-blue-800">
+                            <ArrowRight className="w-3.5 h-3.5 text-blue-600" /> Next Planned Steps:
+                          </strong>
+                          <span className="whitespace-pre-line">{rep.next_steps}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
@@ -502,7 +681,7 @@ const ProjectDetails = () => {
                 MaalHub Investment Protection
               </h4>
               <p className="text-xs text-gray-600 leading-relaxed">
-                By investing in specific milestone tranches, your funds align with verified startup progress and key deliverables.
+                By investing in specific phase tranches, your funds align with verified startup progress and key deliverables.
               </p>
             </div>
           </div>
@@ -695,6 +874,164 @@ const ProjectDetails = () => {
                 >
                   {isUpdatingProgress ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Save Progress
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Post Progress Report Modal (Entrepreneur Owner only) */}
+      {isReportModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6 border-b pb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Post Progress Report
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">Publish an official update visible to all investors.</p>
+              </div>
+              <button 
+                onClick={() => setIsReportModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {reportError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">
+                {reportError}
+              </div>
+            )}
+
+            <form onSubmit={handleReportSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Report Title *
+                </label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. Q1 Progress: Product Prototype Complete"
+                  value={reportForm.title}
+                  onChange={(e) => setReportForm({ ...reportForm, title: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Report Type
+                  </label>
+                  <select
+                    value={reportForm.report_type}
+                    onChange={(e) => setReportForm({ ...reportForm, report_type: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
+                  >
+                    <option value="Progress">Progress Update</option>
+                    <option value="Achievements">Key Achievements</option>
+                    <option value="Financial">Financial / Tranche Report</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Investment Phase (Optional)
+                  </label>
+                  <select
+                    value={reportForm.phase_id}
+                    onChange={(e) => setReportForm({ ...reportForm, phase_id: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
+                  >
+                    <option value="">General Project Update</option>
+                    {phases.map((ph) => (
+                      <option key={ph.id} value={ph.id}>
+                        Phase {ph.phase_number}: {ph.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Executive Summary & Detailed Update *
+                </label>
+                <textarea 
+                  required
+                  rows={4}
+                  placeholder="Describe your progress, developments, obstacles overcome, and general updates..."
+                  value={reportForm.summary}
+                  onChange={(e) => setReportForm({ ...reportForm, summary: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Key Achievements
+                </label>
+                <textarea 
+                  rows={2}
+                  placeholder="e.g. Completed hardware testing, hired lead engineer, reached 500 waitlist signups..."
+                  value={reportForm.key_achievements}
+                  onChange={(e) => setReportForm({ ...reportForm, key_achievements: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Next Planned Steps
+                </label>
+                <textarea 
+                  rows={2}
+                  placeholder="e.g. Begin customer trials, prepare regulatory filing..."
+                  value={reportForm.next_steps}
+                  onChange={(e) => setReportForm({ ...reportForm, next_steps: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Update Completion Progress (%)
+                </label>
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder={project?.progress_percentage?.toString() || '0'}
+                    value={reportForm.progress_percentage}
+                    onChange={(e) => setReportForm({ ...reportForm, progress_percentage: e.target.value })}
+                    className="w-24 px-3.5 py-2 border border-gray-200 rounded-xl text-sm font-bold text-center"
+                  />
+                  <span className="text-xs text-gray-500">
+                    Optionally adjust the overall project progress percentage with this report.
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
+                <button 
+                  type="button" 
+                  onClick={() => setIsReportModalOpen(false)}
+                  className="px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-100 rounded-xl font-medium"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSubmittingReport}
+                  className="bg-primary hover:bg-secondary text-white px-6 py-2.5 text-sm rounded-xl font-bold transition-all shadow-md flex items-center gap-2"
+                >
+                  {isSubmittingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                  Publish Report
                 </button>
               </div>
             </form>
