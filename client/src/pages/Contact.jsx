@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { API_URL } from '../lib/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -19,8 +20,7 @@ const Contact = () => {
     setStatus('sending');
     
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
-      const response = await fetch(`${apiUrl}/contact`, {
+      const response = await fetch(`${API_URL}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

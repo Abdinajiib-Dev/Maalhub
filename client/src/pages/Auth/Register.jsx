@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { supabase } from '../../lib/supabase';
+import { API_URL } from '../../lib/api';
 import TermsContent from '../../components/TermsContent';
 import PrivacyContent from '../../components/PrivacyContent';
 import { Eye, EyeOff, CheckCircle } from 'lucide-react';
@@ -71,8 +72,7 @@ const Register = () => {
         })
       };
 
-      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
-      const response = await fetch(`${apiUrl}/auth/register`, {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

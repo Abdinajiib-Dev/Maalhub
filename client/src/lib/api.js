@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const rawApiUrl = import.meta.env.VITE_API_URL;
+export const API_URL = (rawApiUrl && !rawApiUrl.includes('fly.dev')) ? rawApiUrl : '/api';
 
 /**
  * Helper function to safely parse API response and handle non-JSON / HTML error responses
@@ -70,20 +71,27 @@ const fetchWithAuth = async (endpoint, options = {}) => {
   }
 
   const defaultHeaders = {
-    'Authorization': `Bearer ${token}`,
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     'Content-Type': 'application/json',
   };
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    cache: 'no-store',
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      cache: 'no-store',
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers,
+      },
+    });
 
-  return parseResponse(response);
+    return await parseResponse(response);
+  } catch (err) {
+    if (err.name === 'TypeError' && err.message?.toLowerCase().includes('fetch')) {
+      throw new Error('Unable to connect to server. Please check your connection or try again later.');
+    }
+    throw err;
+  }
 };
 
 // API Services

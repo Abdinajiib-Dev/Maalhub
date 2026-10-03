@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { API_URL } from '../lib/api';
 
 const AuthContext = createContext({});
 
@@ -22,8 +23,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Fallback: fetch from backend Express API
-      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
-      const response = await fetch(`${apiUrl}/auth/me/${userId}`);
+      const response = await fetch(`${API_URL}/auth/me/${userId}`);
       if (response.ok) {
         const resJson = await response.json();
         if (resJson?.profile) {

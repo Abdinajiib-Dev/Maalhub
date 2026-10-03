@@ -6,6 +6,10 @@
   # Vite outputs the build to the 'dist' folder
   publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "20"
+  VITE_API_URL = "/api"
+
 
 # Proxy API requests to Northflank backend
 [[redirects]]
