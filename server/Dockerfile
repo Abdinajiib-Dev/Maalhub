@@ -1,18 +1,24 @@
-FROM node:22-alpine
+# Use Node 20 LTS Alpine image for minimal footprint
+FROM node:20-alpine
 
+# Set working directory inside container
 WORKDIR /app
 
-# Copy package files and install production dependencies
+# Copy package.json and package-lock.json
 COPY package*.json ./
-RUN npm ci --omit=dev || npm install --omit=dev
 
-# Copy server code
+# Install production dependencies
+RUN npm ci --only=production
+
+# Copy source code
 COPY . .
 
-# Environment configuration
+# Set production environment
 ENV NODE_ENV=production
-ENV PORT=8080
+ENV PORT=5000
 
-EXPOSE 8080
+# Expose backend port
+EXPOSE 5000
 
+# Start application
 CMD ["node", "src/index.js"]

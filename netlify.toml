@@ -7,12 +7,13 @@
   publish = "dist"
 
 
-# Proxy API requests to Fly.io backend
-[[redirects]]
-  from = "/api/*"
-  to = "https://maalhub-api.fly.dev/api/:splat"
-  status = 200
-  force = true
+
+# Configure Northflank backend proxy after deployment on Northflank:
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://<YOUR-NORTHFLANK-SUBDOMAIN>.code.run/api/:splat"
+#   status = 200
+#   force = true
 
 # Handle React Router (SPA) client-side routing
 # This ensures that if someone visits /about directly, it loads the React app instead of a 404
