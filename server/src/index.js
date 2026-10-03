@@ -33,7 +33,11 @@ app.use(helmet({
 app.use(cors({
   origin: true,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  optionsSuccessStatus: 200
 }));
+app.options('*', cors());
 
 app.use(morgan('dev', {
   skip: (req, res) => req.originalUrl === '/api/messages/unread' || req.originalUrl === '/api/health'
