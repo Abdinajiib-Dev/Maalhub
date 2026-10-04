@@ -70,6 +70,7 @@ const Dashboard = () => {
   const acceptedInvestments = myInvestments.filter(i => i.status === 'Accepted');
   const totalInvestedCapital = acceptedInvestments.reduce((sum, i) => sum + Number(i.proposed_amount || 0), 0);
   const totalReportsCount = myInvestments.reduce((sum, i) => sum + (Array.isArray(i.reports) ? i.reports.length : 0), 0);
+  const totalOffered = activeRequests.reduce((sum, r) => sum + Number(r.proposed_amount || 0), 0);
 
   const userName = profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'User';
   const rawRole = profile?.role || user?.user_metadata?.role || 'investor';
@@ -117,7 +118,7 @@ const Dashboard = () => {
             <span>Watchlist</span>
             <ArrowRight size={14} />
           </div>
-        </Link>
+        </div>
 
         {/* Card 2 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
@@ -145,7 +146,7 @@ const Dashboard = () => {
             <span>Successful deals</span>
             <ArrowRight size={14} />
           </div>
-        </Link>
+        </div>
 
         {/* Card 4 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
@@ -158,7 +159,7 @@ const Dashboard = () => {
             <span>Active capital</span>
             <ArrowRight size={14} />
           </div>
-        </Link>
+        </div>
       </div>
 
       {/* 3. Main Content Two-Column Grid */}
@@ -239,9 +240,9 @@ const Dashboard = () => {
                         <div className="flex items-center gap-2 self-start sm:self-auto">
                           <span className="font-extrabold text-gray-900 text-sm">${Number(request.proposed_amount).toLocaleString()}</span>
                           <span className={`text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full ${request.status === 'Pending' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                              request.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                                request.status === 'Withdrawn' ? 'bg-gray-100 text-gray-600 border border-gray-200' :
-                                  'bg-red-100 text-red-800 border border-red-200'
+                            request.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                              request.status === 'Withdrawn' ? 'bg-gray-100 text-gray-600 border border-gray-200' :
+                                'bg-red-100 text-red-800 border border-red-200'
                             }`}>
                             {request.status}
                           </span>
