@@ -213,11 +213,11 @@ const Dashboard = () => {
         </div>
 
         {/* Right Column Box - My Investment Offers */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-7 shadow-xs flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-7 shadow-xs flex flex-col justify-between overflow-hidden">
           <div>
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">My Investment Offers</h2>
-              <Link to="/investor/requests" className="text-xs font-semibold text-primary hover:text-secondary border border-primary/20 bg-primary/5 px-3.5 py-1.5 rounded-lg transition-colors">
+              <Link to="/investor/requests" className="text-xs font-semibold text-primary hover:text-secondary border border-primary/20 bg-primary/5 px-3.5 py-1.5 rounded-lg transition-colors shrink-0">
                 View All
               </Link>
             </div>
@@ -226,18 +226,18 @@ const Dashboard = () => {
               {requests.slice(0, 3).map((request) => {
                 const initials = request.entrepreneur?.full_name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'EN';
                 return (
-                  <div key={request.id} className="bg-gray-50/70 rounded-xl p-4 border border-gray-100 hover:border-gray-200/80 transition-all flex flex-col sm:flex-row gap-4">
+                  <div key={request.id} className="bg-gray-50/70 rounded-xl p-4 border border-gray-100 hover:border-gray-200/80 transition-all flex flex-col sm:flex-row gap-4 min-w-0">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-2xs">
                       {initials}
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-between gap-3">
-                      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
-                        <div>
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <h4 className="font-bold text-gray-900 text-sm truncate mb-0.5">{request.entrepreneur?.full_name}</h4>
                           <p className="text-xs text-gray-500 truncate">Offer for {request.project?.project_name}</p>
                         </div>
 
-                        <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                           <span className="font-extrabold text-gray-900 text-sm">${Number(request.proposed_amount).toLocaleString()}</span>
                           <span className={`text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full ${request.status === 'Pending' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
                             request.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
@@ -249,15 +249,15 @@ const Dashboard = () => {
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center pt-2 border-t border-gray-200/40">
-                        <span className="text-[11px] text-gray-400 font-medium">
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-200/40 gap-2 min-w-0">
+                        <span className="text-[11px] text-gray-400 font-medium truncate min-w-0">
                           {new Date(request.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
 
-                        <div className="flex gap-2">
-                          <Link to={`/projects/${request.project_id}`} className="px-3 py-1 text-[11px] font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors shadow-2xs">View</Link>
+                        <div className="flex gap-2 shrink-0">
+                          <Link to={`/projects/${request.project_id}`} className="px-3 py-1 text-[11px] font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors shadow-2xs whitespace-nowrap">View</Link>
                           {request.status === 'Pending' && (
-                            <button onClick={() => handleWithdrawRequest(request.id)} className="px-3 py-1 text-[11px] font-medium text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors shadow-2xs">Withdraw</button>
+                            <button onClick={() => handleWithdrawRequest(request.id)} className="px-3 py-1 text-[11px] font-medium text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors shadow-2xs whitespace-nowrap">Withdraw</button>
                           )}
                         </div>
                       </div>

@@ -157,11 +157,11 @@ const Dashboard = () => {
       {/* 3. Main Content Two-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Left Column Box - My Projects */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-7 shadow-xs flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-7 shadow-xs flex flex-col justify-between overflow-hidden">
           <div>
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">My Projects</h2>
-              <Link to="/entrepreneur/projects" className="text-xs font-semibold text-primary hover:text-secondary border border-primary/20 bg-primary/5 px-3.5 py-1.5 rounded-lg transition-colors">
+              <Link to="/entrepreneur/projects" className="text-xs font-semibold text-primary hover:text-secondary border border-primary/20 bg-primary/5 px-3.5 py-1.5 rounded-lg transition-colors shrink-0">
                 View All
               </Link>
             </div>
@@ -173,7 +173,7 @@ const Dashboard = () => {
                   .reduce((sum, r) => sum + Number(r.proposed_amount || 0), 0);
                 const percentage = project.funding_goal ? Math.min(Math.round((raisedAmount / project.funding_goal) * 100), 100) : 0;
                 return (
-                  <div key={project.id} className="bg-gray-50/70 rounded-xl p-4 border border-gray-100 hover:border-gray-200/80 transition-all flex flex-col sm:flex-row gap-4 sm:gap-5">
+                  <div key={project.id} className="bg-gray-50/70 rounded-xl p-4 border border-gray-100 hover:border-gray-200/80 transition-all flex flex-col sm:flex-row gap-4 sm:gap-5 min-w-0">
                     <div className="w-20 h-20 sm:w-22 sm:h-22 bg-white rounded-lg overflow-hidden flex-shrink-0 shadow-2xs border border-gray-200/60">
                       {project.project_image_url ? (
                         <img src={project.project_image_url} alt={project.project_name} className="w-full h-full object-cover" />
@@ -182,12 +182,12 @@ const Dashboard = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-between gap-3">
-                      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
-                        <div>
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <h3 className="font-bold text-gray-900 text-sm truncate mb-0.5">{project.project_name}</h3>
-                          <p className="text-xs font-medium text-gray-500">{project.industry}</p>
+                          <p className="text-xs font-medium text-gray-500 truncate">{project.industry}</p>
                         </div>
-                        <span className={`self-start text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full ${
+                        <span className={`self-start shrink-0 text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full ${
                           project.status === 'Published' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
                           project.status === 'Draft' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
                           'bg-gray-100 text-gray-700 border border-gray-200'
@@ -196,24 +196,24 @@ const Dashboard = () => {
                         </span>
                       </div>
                       
-                      <div>
-                        <div className="flex justify-between text-xs font-bold text-gray-900 mb-1.5">
-                          <span>${raisedAmount.toLocaleString()} / ${Number(project.funding_goal || 0).toLocaleString()}</span>
-                          <span className="text-gray-500">{percentage}%</span>
+                      <div className="w-full">
+                        <div className="flex justify-between text-xs font-bold text-gray-900 mb-1.5 gap-2">
+                          <span className="truncate">${raisedAmount.toLocaleString()} / ${Number(project.funding_goal || 0).toLocaleString()}</span>
+                          <span className="text-gray-500 shrink-0">{percentage}%</span>
                         </div>
                         <div className="w-full bg-gray-200/80 rounded-full h-1.5 overflow-hidden">
                           <div className="bg-primary h-1.5 rounded-full" style={{ width: `${percentage}%` }}></div>
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center pt-2 border-t border-gray-200/40">
-                        <span className="text-[11px] text-gray-400 font-medium">
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-200/40 gap-2 min-w-0">
+                        <span className="text-[11px] text-gray-400 font-medium truncate min-w-0">
                           Created {new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                         
-                        <div className="flex gap-2">
-                          <Link to={`/projects/${project.id}`} className="px-3 py-1 text-[11px] font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors shadow-2xs">View</Link>
-                          <Link to={`/entrepreneur/projects`} className="px-3 py-1 text-[11px] font-medium text-white bg-primary hover:bg-secondary rounded-md transition-colors shadow-2xs">Edit</Link>
+                        <div className="flex gap-2 shrink-0">
+                          <Link to={`/projects/${project.id}`} className="px-3 py-1 text-[11px] font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors shadow-2xs whitespace-nowrap">View</Link>
+                          <Link to={`/entrepreneur/projects`} className="px-3 py-1 text-[11px] font-medium text-white bg-primary hover:bg-secondary rounded-md transition-colors shadow-2xs whitespace-nowrap">Edit</Link>
                         </div>
                       </div>
                     </div>
