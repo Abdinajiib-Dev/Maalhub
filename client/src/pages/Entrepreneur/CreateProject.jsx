@@ -222,7 +222,7 @@ const CreateProject = () => {
               <div className="md:col-span-2 bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
                 <div className="flex justify-between text-xs font-bold text-gray-700 mb-1.5">
                   <span>Project Progress: {currentProgress}%</span>
-                  <span className="text-gray-500">{currentProgress >= 100 ? 'Completed 🎉' : currentProgress > 0 ? 'In Development' : 'Not Started'}</span>
+                  <span className="text-gray-500">{currentProgress >= 100 ? 'Completed' : currentProgress > 0 ? 'In Development' : 'Not Started'}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3.5 overflow-hidden">
                   <div

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, MapPin, Calendar, Briefcase, Building, TrendingUp } from 'lucide-react';
+import { Mail, MapPin, Calendar, Briefcase, Building, TrendingUp, Layers } from 'lucide-react';
 import { api } from '../../lib/api';
 
 const Profile = () => {
@@ -180,6 +180,26 @@ const Profile = () => {
                       <p className="text-sm text-gray-900 font-medium truncate">
                         ${Number(roleDetails.minimum_investment).toLocaleString()} - ${Number(roleDetails.maximum_investment).toLocaleString()}
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 sm:col-span-2">
+                    <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
+                      <Layers size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-gray-500 mb-0.5">Preferred Categories</p>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {roleDetails.target_industries && roleDetails.target_industries.length > 0 ? (
+                          roleDetails.target_industries.map((ind, idx) => (
+                            <span key={idx} className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              {ind}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-sm text-gray-900 font-medium">All Categories</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

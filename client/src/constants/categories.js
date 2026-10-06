@@ -1,4 +1,4 @@
-import { Sprout, HeartPulse, Hotel, GraduationCap } from 'lucide-react';
+import { Sprout, Briefcase, Hotel, GraduationCap } from 'lucide-react';
 
 export const PROJECT_CATEGORIES = [
   {
@@ -11,13 +11,13 @@ export const PROJECT_CATEGORIES = [
     gradient: 'from-emerald-600 to-green-700',
   },
   {
-    id: 'Healthcare',
-    name: 'Healthcare',
-    description: 'Projects related to healthcare services, clinics, medical solutions, and health-related businesses.',
-    icon: HeartPulse,
-    badgeBg: 'bg-rose-100 text-rose-800 border-rose-200',
-    accentColor: 'text-rose-600',
-    gradient: 'from-rose-600 to-red-700',
+    id: 'Business',
+    name: 'Business',
+    description: 'Projects related to commerce, retail, financial services, enterprise, and corporate ventures.',
+    icon: Briefcase,
+    badgeBg: 'bg-blue-100 text-blue-800 border-blue-200',
+    accentColor: 'text-blue-600',
+    gradient: 'from-blue-600 to-indigo-700',
   },
   {
     id: 'Hospitality & Tourism',

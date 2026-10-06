@@ -15,6 +15,7 @@ import Privacy from './pages/Privacy';
 import Contact from './pages/Contact';
 import EntrepreneurDashboard from './pages/Entrepreneur/Dashboard';
 import CreateProject from './pages/Entrepreneur/CreateProject';
+import EditProject from './pages/Entrepreneur/EditProject';
 import MyProjects from './pages/Entrepreneur/MyProjects';
 import InvestorDashboard from './pages/Investor/Dashboard';
 import InvestmentRequests from './pages/Shared/InvestmentRequests';
@@ -67,6 +68,7 @@ function App() {
           }>
             <Route path="dashboard" element={<EntrepreneurDashboard />} />
             <Route path="create-project" element={<CreateProject />} />
+            <Route path="edit-project/:id" element={<EditProject />} />
             <Route path="projects" element={<MyProjects />} />
             <Route path="requests" element={<InvestmentRequests />} />
             <Route path="messages" element={<Messages />} />

@@ -1,7 +1,12 @@
 import React from 'react';
 
 const ProjectProgressBar = ({ progress = 0, showLabel = true, size = 'md', className = '' }) => {
-  const percentage = Math.min(100, Math.max(0, parseInt(progress) || 0));
+  let raw = progress;
+  if (typeof raw === 'string') {
+    const match = raw.match(/(\d+)/);
+    raw = match ? match[1] : 0;
+  }
+  const percentage = Math.min(100, Math.max(0, parseInt(raw, 10) || 0));
 
   // Determine bar height based on size
   const heightClass = size === 'sm' ? 'h-2' : size === 'lg' ? 'h-4' : 'h-3';

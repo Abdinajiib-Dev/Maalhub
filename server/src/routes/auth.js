@@ -76,8 +76,17 @@ router.get('/me/:id', async (req, res) => {
          const { data } = await supabase.from('entrepreneur_profiles').select('*').eq('user_id', id).single();
          roleDetails = data;
       } else if (profile.role === 'investor') {
-         const { data } = await supabase.from('investor_profiles').select('*').eq('user_id', id).single();
-         roleDetails = data;
+         const { data: invData } = await supabase.from('investor_profiles').select('*').eq('user_id', id).single();
+         if (invData) {
+           const { data: indData } = await supabase
+             .from('investor_industries')
+             .select('industry')
+             .eq('investor_id', invData.id);
+           roleDetails = {
+             ...invData,
+             target_industries: indData ? indData.map(i => i.industry) : []
+           };
+         }
       }
       return res.status(200).json({ profile, roleDetails });
     }

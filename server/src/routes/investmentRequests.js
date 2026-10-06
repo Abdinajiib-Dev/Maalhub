@@ -2,6 +2,7 @@ import express from 'express';
 import { supabase } from '../db/supabase.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 import { getReportsForProject } from '../utils/reportsHelper.js';
+import { normalizeProject } from '../utils/projectHelper.js';
 
 const router = express.Router();
 
@@ -28,7 +29,6 @@ router.get('/my-investments', requireAuth, async (req, res) => {
             project_description,
             status,
             project_image_url,
-            progress_percentage,
             current_progress,
             created_at
           ),
@@ -98,6 +98,7 @@ router.get('/my-investments', requireAuth, async (req, res) => {
 
         return {
           ...inv,
+          project: inv.project ? normalizeProject(inv.project) : inv.project,
           all_phases: allPhases,
           reports: reports
         };

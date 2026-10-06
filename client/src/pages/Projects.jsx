@@ -7,10 +7,22 @@ import { PROJECT_CATEGORIES } from '../constants/categories';
 import ProjectProgressBar from '../components/ProjectProgressBar';
 
 const Projects = () => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const isEntrepreneur = profile?.role === 'entrepreneur';
-  const [searchParams, setSearchParams] = useSearchParams();
+  const isInvestor = profile?.role === 'investor' || user?.user_metadata?.role === 'investor';
 
+  // Investor preferred categories scope
+  const targetIndustries = profile?.target_industries || user?.user_metadata?.target_industries || [];
+  const hasAllCategories = !isInvestor || targetIndustries.length === 0 || targetIndustries.some(ind => ['all', 'any'].includes(String(ind).toLowerCase()));
+
+  // Categories visible in filter UI
+  const visibleCategories = hasAllCategories
+    ? PROJECT_CATEGORIES
+    : PROJECT_CATEGORIES.filter(cat =>
+        targetIndustries.some(ind => ind.toLowerCase() === cat.name.toLowerCase())
+      );
+
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get('category') || 'All';
 
   const [projects, setProjects] = useState([]);
@@ -43,6 +55,18 @@ const Projects = () => {
     }
   }, [searchParams]);
 
+  // Ensure investor cannot manually filter to a category outside their scope
+  useEffect(() => {
+    if (!hasAllCategories && targetIndustries.length > 0 && selectedCategory !== 'All') {
+      const isAllowed = targetIndustries.some(ind => ind.toLowerCase() === selectedCategory.toLowerCase());
+      if (!isAllowed) {
+        setSelectedCategory('All');
+        searchParams.delete('category');
+        setSearchParams(searchParams);
+      }
+    }
+  }, [hasAllCategories, targetIndustries, selectedCategory]);
+
   const handleCategoryChange = (categoryName) => {
     setSelectedCategory(categoryName);
     if (categoryName === 'All') {
@@ -54,11 +78,21 @@ const Projects = () => {
   };
 
   const filteredProjects = projects.filter(project => {
+    // 1. Strict category scoping for investors who chose specific categories
+    if (!hasAllCategories && targetIndustries.length > 0) {
+      const matchesTarget = targetIndustries.some(
+        ind => ind.toLowerCase() === (project.industry || '').toLowerCase()
+      );
+      if (!matchesTarget) return false;
+    }
+
+    // 2. Search query match
     const matchesSearch = 
       project.project_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.industry?.toLowerCase().includes(searchTerm.toLowerCase());
 
+    // 3. Category selector match
     const matchesCategory = 
       selectedCategory === 'All' || 
       project.industry?.toLowerCase() === selectedCategory.toLowerCase();
@@ -77,9 +111,18 @@ const Projects = () => {
           </h1>
           <p className="text-gray-500 text-lg mb-8">
             {isEntrepreneur 
-              ? "View and manage your created startup projects across Agriculture, Healthcare, Hospitality & Tourism, and Education." 
+              ? "View and manage your created startup projects across Agriculture, Business, Hospitality & Tourism, and Education." 
               : "Discover and connect with innovative startups looking for funding in key development sectors."}
           </p>
+
+          {isInvestor && !hasAllCategories && targetIndustries.length > 0 && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-6 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>
+                Personalized feed: Showing projects in <strong>{targetIndustries.join(', ')}</strong>
+              </span>
+            </div>
+          )}
 
           {isEntrepreneur && (
             <div className="mb-8">
@@ -120,8 +163,10 @@ const Projects = () => {
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 className="w-full sm:w-72 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm cursor-pointer"
               >
-                <option value="All">All Categories</option>
-                {PROJECT_CATEGORIES.map((cat) => (
+                <option value="All">
+                  {hasAllCategories ? "All Categories" : `All Selected (${targetIndustries.join(', ')})`}
+                </option>
+                {visibleCategories.map((cat) => (
                   <option key={cat.id} value={cat.name}>
                     {cat.name}
                   </option>
@@ -139,9 +184,9 @@ const Projects = () => {
                     : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                 }`}
               >
-                All Projects
+                {hasAllCategories ? "All Projects" : "All Selected"}
               </button>
-              {PROJECT_CATEGORIES.map((cat) => {
+              {visibleCategories.map((cat) => {
                 const isSelected = selectedCategory.toLowerCase() === cat.name.toLowerCase();
                 const IconComp = cat.icon;
                 return (
@@ -182,6 +227,8 @@ const Projects = () => {
             <p className="text-gray-500 mb-4">
               {selectedCategory !== 'All' 
                 ? `There are currently no active projects listed under ${selectedCategory}.` 
+                : !hasAllCategories && targetIndustries.length > 0
+                ? `There are currently no active projects matching your selected categories (${targetIndustries.join(', ')}).`
                 : "We couldn't find any active projects matching your search criteria."}
             </p>
             {selectedCategory !== 'All' && (

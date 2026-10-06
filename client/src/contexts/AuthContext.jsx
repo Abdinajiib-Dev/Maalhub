@@ -9,8 +9,28 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId) => {
+  const fetchProfile = async (userId, userMetadata = null) => {
     try {
+      // 1. First attempt to fetch from backend Express API (which joins roleDetails and target_industries)
+      try {
+        const response = await fetch(`${API_URL}/auth/me/${userId}`);
+        if (response.ok) {
+          const resJson = await response.json();
+          if (resJson?.profile) {
+            const targetIndustries = resJson.roleDetails?.target_industries || userMetadata?.target_industries || [];
+            setProfile({
+              ...resJson.profile,
+              roleDetails: resJson.roleDetails,
+              target_industries: targetIndustries
+            });
+            return;
+          }
+        }
+      } catch (apiErr) {
+        console.warn('Backend API profile fetch fallback:', apiErr.message);
+      }
+
+      // 2. Fallback to direct Supabase query
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -18,18 +38,32 @@ export const AuthProvider = ({ children }) => {
         .single();
         
       if (!error && data) {
-        setProfile(data);
-        return;
-      }
+        let targetIndustries = userMetadata?.target_industries || [];
+        if (data.role === 'investor' && targetIndustries.length === 0) {
+          try {
+            const { data: invProfile } = await supabase
+              .from('investor_profiles')
+              .select('id')
+              .eq('user_id', userId)
+              .maybeSingle();
 
-      // Fallback: fetch from backend Express API
-      const response = await fetch(`${API_URL}/auth/me/${userId}`);
-      if (response.ok) {
-        const resJson = await response.json();
-        if (resJson?.profile) {
-          setProfile(resJson.profile);
-          return;
+            if (invProfile?.id) {
+              const { data: indData } = await supabase
+                .from('investor_industries')
+                .select('industry')
+                .eq('investor_id', invProfile.id);
+              if (indData && indData.length > 0) {
+                targetIndustries = indData.map(i => i.industry);
+              }
+            }
+          } catch (e) {}
         }
+
+        setProfile({
+          ...data,
+          target_industries: targetIndustries
+        });
+        return;
       }
     } catch (err) {
       console.warn('Profile fetch error:', err);
@@ -43,7 +77,7 @@ export const AuthProvider = ({ children }) => {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (!error && session?.user) {
           setUser(session.user);
-          await fetchProfile(session.user.id);
+          await fetchProfile(session.user.id, session.user.user_metadata);
         }
       } catch (err) {
         console.warn("Supabase getSession failed:", err);
@@ -59,7 +93,7 @@ export const AuthProvider = ({ children }) => {
       const res = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
           setUser(session.user);
-          await fetchProfile(session.user.id);
+          await fetchProfile(session.user.id, session.user.user_metadata);
         } else {
           setUser(null);
           setProfile(null);

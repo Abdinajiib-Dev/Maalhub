@@ -106,7 +106,7 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-6 sm:mb-8">
-        {/* Card 1 */}
+        {/* Card 1: Active Investments */}
         <Link to="/investor/investments" className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group hover:border-gray-200 transition-all">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
             <TrendingUp size={24} />
@@ -119,20 +119,7 @@ const Dashboard = () => {
           </div>
         </Link>
         
-        {/* Card 2 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group">
-          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-            <DollarSign size={24} />
-          </div>
-          <p className="text-sm font-medium text-gray-500 mb-1">Total Invested</p>
-          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">${totalInvestedCapital.toLocaleString()}</h3>
-          <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
-            <span>Committed capital</span>
-            <ArrowRight size={14} />
-          </div>
-        </div>
-
-        {/* Card 3 */}
+        {/* Card 2: Pending Offers */}
         <Link to="/investor/requests" className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group hover:border-gray-200 transition-all">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
             <CheckCircle size={24} />
@@ -145,7 +132,7 @@ const Dashboard = () => {
           </div>
         </Link>
 
-        {/* Card 4 */}
+        {/* Card 3: Founder Reports */}
         <Link to="/investor/investments" className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group hover:border-gray-200 transition-all">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
             <FileText size={24} />
@@ -154,6 +141,19 @@ const Dashboard = () => {
           <h3 className="text-3xl font-bold text-gray-900 mb-4">{totalReportsCount}</h3>
           <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
             <span>Progress updates</span>
+            <ArrowRight size={14} />
+          </div>
+        </Link>
+
+        {/* Card 4: Total Invested (Moved to the last) */}
+        <Link to="/investor/investments" className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col items-center text-center relative overflow-hidden group hover:border-gray-200 transition-all">
+          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+            <DollarSign size={24} />
+          </div>
+          <p className="text-sm font-medium text-gray-500 mb-1">Total Invested</p>
+          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">${totalInvestedCapital.toLocaleString()}</h3>
+          <div className="w-full flex justify-between items-center text-xs text-gray-400 mt-auto pt-4 border-t border-gray-50">
+            <span>Committed capital</span>
             <ArrowRight size={14} />
           </div>
         </Link>

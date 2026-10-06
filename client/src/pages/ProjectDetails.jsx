@@ -49,17 +49,33 @@ const ProjectDetails = () => {
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
   const [newProgress, setNewProgress] = useState(0);
   const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
+  const [progressSuccessMessage, setProgressSuccessMessage] = useState('');
+  const [progressErrorMessage, setProgressErrorMessage] = useState('');
 
   const handleUpdateProgressSubmit = async (e) => {
     e.preventDefault();
     setIsUpdatingProgress(true);
+    setProgressErrorMessage('');
+    setProgressSuccessMessage('');
     try {
-      const updatedVal = Math.min(100, Math.max(0, parseInt(newProgress) || 0));
-      await api.updateProject(id, { progress_percentage: updatedVal });
-      setProject(prev => ({ ...prev, progress_percentage: updatedVal }));
-      setIsProgressModalOpen(false);
+      const updatedVal = Math.min(100, Math.max(0, parseInt(newProgress, 10) || 0));
+      const res = await api.updateProject(id, { 
+        progress_percentage: updatedVal,
+        current_progress: `${updatedVal}%`
+      });
+      setProject(prev => ({ 
+        ...prev, 
+        ...(res || {}),
+        progress_percentage: updatedVal,
+        current_progress: `${updatedVal}%`
+      }));
+      setProgressSuccessMessage(`Progress successfully updated to ${updatedVal}%!`);
+      setTimeout(() => {
+        setIsProgressModalOpen(false);
+        setProgressSuccessMessage('');
+      }, 700);
     } catch (err) {
-      alert(`Failed to update progress: ${err.message}`);
+      setProgressErrorMessage(err.message || 'Failed to update progress');
     } finally {
       setIsUpdatingProgress(false);
     }
@@ -245,9 +261,18 @@ const ProjectDetails = () => {
             Back
           </button>
           {isOwner && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-              Your Project
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
+                Your Project
+              </span>
+              <Link
+                to={`/entrepreneur/edit-project/${id}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-white bg-primary hover:bg-secondary transition-all shadow-xs"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                Edit Project
+              </Link>
+            </div>
           )}
         </div>
       </div>
@@ -808,8 +833,8 @@ const ProjectDetails = () => {
       )}
       {/* Update Progress Percentage Modal (Owner Only) */}
       {isProgressModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-gray-100">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-primary" />
@@ -817,19 +842,55 @@ const ProjectDetails = () => {
               </h3>
               <button 
                 onClick={() => setIsProgressModalOpen(false)} 
-                className="text-gray-400 hover:text-gray-600 font-bold text-xl"
+                className="text-gray-400 hover:text-gray-600 font-bold text-xl p-1 rounded-lg"
               >
                 &times;
               </button>
             </div>
             
-            <form onSubmit={handleUpdateProgressSubmit} className="p-6 space-y-6">
+            <form onSubmit={handleUpdateProgressSubmit} className="p-6 space-y-5">
+              {progressSuccessMessage && (
+                <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                  <span>{progressSuccessMessage}</span>
+                </div>
+              )}
+
+              {progressErrorMessage && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl">
+                  {progressErrorMessage}
+                </div>
+              )}
+
+              {/* Current Progress & Stage Tag */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-semibold text-gray-700">Completion Percentage</label>
-                  <span className="text-lg font-black text-primary">{newProgress}%</span>
+                  <label className="text-sm font-semibold text-gray-700">Project Development Progress</label>
+                  <span className="text-xl font-black text-primary">{newProgress}%</span>
                 </div>
                 
+                {/* Milestone Badge */}
+                <div className="mb-3">
+                  <span className={`inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                    newProgress >= 100 
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                      : newProgress >= 75 
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                      : newProgress >= 50 
+                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                      : newProgress >= 25 
+                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                      : 'bg-gray-100 text-gray-700 border border-gray-200'
+                  }`}>
+                    {newProgress >= 100 ? 'Completed & Scaling' : 
+                     newProgress >= 75 ? 'Market Ready / Launching' : 
+                     newProgress >= 50 ? 'MVP & Operational Testing' : 
+                     newProgress >= 25 ? 'Prototype & Development' : 
+                     'Concept & Planning'}
+                  </span>
+                </div>
+
+                {/* Slider */}
                 <input 
                   type="range" 
                   min="0" 
@@ -837,20 +898,39 @@ const ProjectDetails = () => {
                   step="5"
                   value={newProgress}
                   onChange={(e) => setNewProgress(e.target.value)}
-                  className="w-full h-2.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary mb-4"
+                  className="w-full h-2.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary mb-3"
                 />
 
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500">Exact Value:</span>
+                {/* Quick Presets */}
+                <div className="flex items-center justify-between gap-1.5 mb-3">
+                  {[0, 25, 50, 75, 100].map(val => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setNewProgress(val)}
+                      className={`flex-1 py-1 text-xs font-bold rounded-lg border transition-all ${
+                        Number(newProgress) === val 
+                          ? 'bg-primary text-white border-primary shadow-xs' 
+                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      {val}%
+                    </button>
+                  ))}
+                </div>
+
+                {/* Exact Value Input */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 font-medium">Exact %:</span>
                   <input 
                     type="number"
                     min="0"
                     max="100"
                     value={newProgress}
                     onChange={(e) => setNewProgress(e.target.value)}
-                    className="w-20 px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-bold text-center"
+                    className="w-20 px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-bold text-center focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                   />
-                  <span className="text-sm font-bold">%</span>
+                  <span className="text-sm font-bold text-gray-600">%</span>
                 </div>
               </div>
 
@@ -863,14 +943,14 @@ const ProjectDetails = () => {
                 <button 
                   type="button" 
                   onClick={() => setIsProgressModalOpen(false)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl font-medium"
+                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
                   disabled={isUpdatingProgress}
-                  className="bg-primary hover:bg-secondary text-white px-6 py-2 text-sm rounded-xl font-bold transition-all shadow-sm flex items-center gap-2"
+                  className="bg-primary hover:bg-secondary text-white px-6 py-2 text-sm rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-70"
                 >
                   {isUpdatingProgress ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Save Progress

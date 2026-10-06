@@ -4,6 +4,7 @@ import { supabase } from '../db/supabase.js';
 import { requireAuth, optionalAuth } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 import { getReportsForProject, saveReportForProject, deleteReportById } from '../utils/reportsHelper.js';
+import { normalizeProject, normalizeProjects } from '../utils/projectHelper.js';
 
 const router = express.Router();
 
@@ -19,10 +20,13 @@ const projectSchema = z.object({
 
 const updateProjectSchema = z.object({
   body: z.object({
-    project_name: z.string().min(3).max(100).optional(),
-    project_description: z.string().min(10).optional(),
-    funding_goal: z.number().positive().optional(),
-    status: z.enum(['Draft', 'Published', 'Funded']).optional(),
+    project_name: z.string().min(2, "Project name must be at least 2 characters").max(150).optional(),
+    project_description: z.string().optional(),
+    funding_goal: z.union([
+      z.number().positive(),
+      z.string().transform(v => parseFloat(v))
+    ]).optional(),
+    status: z.enum(['Draft', 'Published', 'Paused', 'Closed', 'Funded']).optional(),
   }).passthrough()
 });
 
@@ -60,9 +64,57 @@ router.get('/', optionalAuth, async (req, res, next) => {
     if (profile?.role === 'entrepreneur') {
       // Entrepreneurs only see their own created projects
       query = query.eq('entrepreneur_id', req.user.id);
-    } else {
-      // Investors see all published projects from any entrepreneur
+    } else if (profile?.role === 'investor' || req.user?.user_metadata?.role === 'investor') {
+      // Investors see published projects restricted to their preferred categories
       query = query.eq('status', 'Published');
+
+      let investorIndustries = [];
+      try {
+        const { data: invProfile } = await supabase
+          .from('investor_profiles')
+          .select('id')
+          .eq('user_id', req.user.id)
+          .maybeSingle();
+
+        if (invProfile?.id) {
+          const { data: indData } = await supabase
+            .from('investor_industries')
+            .select('industry')
+            .eq('investor_id', invProfile.id);
+
+          if (indData && indData.length > 0) {
+            investorIndustries = indData.map(i => i.industry);
+          }
+        }
+      } catch (err) {
+        console.warn('Error fetching investor industries for project scoping:', err.message);
+      }
+
+      // Fallback from user_metadata if available
+      if (investorIndustries.length === 0 && Array.isArray(req.user?.user_metadata?.target_industries)) {
+        investorIndustries = req.user.user_metadata.target_industries;
+      }
+
+      const hasAll = investorIndustries.length === 0 || investorIndustries.some(ind => ['all', 'any'].includes(String(ind).toLowerCase()));
+      if (!hasAll && investorIndustries.length > 0) {
+        const industryFilter = Array.from(new Set(
+          investorIndustries.flatMap(ind => [
+            ind,
+            ind.trim(),
+            ind.charAt(0).toUpperCase() + ind.slice(1).toLowerCase(),
+            ind.toLowerCase(),
+            ind.toUpperCase()
+          ])
+        ));
+        query = query.in('industry', industryFilter);
+      }
+    } else {
+      // Public visitors see all published projects
+      query = query.eq('status', 'Published');
+    }
+
+    if (req.query.category && req.query.category !== 'All') {
+      query = query.eq('industry', req.query.category);
     }
 
     const { data, error, count } = await query
@@ -71,7 +123,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
 
     if (error) throw error;
     res.json({
-      data,
+      data: normalizeProjects(data),
       meta: {
         total: count,
         page: page ? parseInt(page) : 1,
@@ -98,7 +150,7 @@ router.get('/my-projects', requireAuth, async (req, res, next) => {
 
     if (error) throw error;
     res.json({
-      data,
+      data: normalizeProjects(data),
       meta: {
         total: count,
         page: page ? parseInt(page) : 1,
@@ -135,9 +187,14 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       throw error;
     }
 
-    // Role check: Entrepreneurs cannot view projects created by other entrepreneurs
-    if (profile?.role === 'entrepreneur' && data.entrepreneur_id !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied: Entrepreneurs can only view their own projects.' });
+    const isOwner = req.user && data.entrepreneur_id === req.user.id;
+    const isPublished = data.status === 'Published';
+
+    // Users are allowed to view all content that they are permitted to access:
+    // Published projects can be viewed by permitted users.
+    // Unpublished/Draft projects can only be viewed by the project owner.
+    if (!isOwner && !isPublished) {
+      return res.status(403).json({ error: 'Access denied: You do not have permission to view unpublished projects.' });
     }
 
     // Attempt to fetch investment phases for this project
@@ -156,7 +213,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       console.warn('Phase fetch warning:', phaseErr.message);
     }
 
-    res.json({ ...data, phases });
+    res.json(normalizeProject({ ...data, phases }));
   } catch (error) {
     next(error);
   }
@@ -183,18 +240,27 @@ router.post('/', requireAuth, validate(projectSchema), async (req, res, next) =>
 
     if (entError) throw entError;
 
-    // Separate phases from the project columns
-    const { phases, ...rawProjectData } = req.body;
+    // Separate phases and progress_percentage from the project columns
+    const { phases, progress_percentage, ...rawProjectData } = req.body;
+    let initialProgress = 0;
+    if (progress_percentage !== undefined && progress_percentage !== null) {
+      initialProgress = Math.min(100, Math.max(0, parseInt(progress_percentage, 10) || 0));
+    } else if (rawProjectData.current_progress) {
+      const match = String(rawProjectData.current_progress).match(/(\d+)/);
+      if (match) initialProgress = Math.min(100, Math.max(0, parseInt(match[1], 10)));
+    }
 
     // Merge the auto-populated fields with the request body
     const projectData = { 
       ...rawProjectData, 
+      current_progress: `${initialProgress}%`,
       entrepreneur_id: req.user.id,
       business_name: req.body.business_name || entProfile?.startup_company_name || 'Startup Business',
       industry: req.body.industry || req.body.category || entProfile?.industry || 'Agriculture',
       startup_stage: req.body.startup_stage || entProfile?.startup_stage || 'Growth',
       location: profile ? `${profile.city}, ${profile.country}` : 'Location unverified'
     };
+    delete projectData.progress_percentage;
     
     const { data, error } = await supabase
       .from('projects')
@@ -232,7 +298,7 @@ router.post('/', requireAuth, validate(projectSchema), async (req, res, next) =>
       }
     }
 
-    res.status(201).json({ ...data, phases: insertedPhases });
+    res.status(201).json(normalizeProject({ ...data, phases: insertedPhases }));
   } catch (error) {
     next(error);
   }
@@ -259,37 +325,46 @@ router.put('/:id', requireAuth, validate(updateProjectSchema), async (req, res, 
     }
 
     const updates = { ...req.body };
-    if (updates.progress_percentage !== undefined) {
-      const val = Math.min(100, Math.max(0, parseInt(updates.progress_percentage) || 0));
-      updates.progress_percentage = val;
-      updates.current_progress = `${val}%`;
+    delete updates.phases; // Handled separately or ignored to prevent schema mismatch
+    delete updates.id;
+    delete updates.entrepreneur_id;
+    delete updates.created_at;
+    delete updates.updated_at;
+    delete updates.entrepreneur;
+
+    if (updates.funding_goal !== undefined) {
+      updates.funding_goal = parseFloat(updates.funding_goal) || 0;
     }
 
-    let { data, error } = await supabase
+    let targetProgress = null;
+    if (updates.progress_percentage !== undefined && updates.progress_percentage !== null && updates.progress_percentage !== '') {
+      targetProgress = Math.min(100, Math.max(0, parseInt(updates.progress_percentage, 10) || 0));
+    } else if (updates.current_progress !== undefined && updates.current_progress !== null && updates.current_progress !== '') {
+      const match = String(updates.current_progress).match(/(\d+)/);
+      if (match) {
+        targetProgress = Math.min(100, Math.max(0, parseInt(match[1], 10)));
+      }
+    }
+
+    if (targetProgress !== null) {
+      updates.current_progress = `${targetProgress}%`;
+    }
+    // Delete progress_percentage so Supabase never errors on schema mismatch
+    delete updates.progress_percentage;
+
+    const { data, error } = await supabase
       .from('projects')
       .update(updates)
       .eq('id', projectId)
       .select()
       .single();
 
-    if (error && error.message && error.message.toLowerCase().includes('progress_percentage')) {
-      delete updates.progress_percentage;
-      const retry = await supabase
-        .from('projects')
-        .update(updates)
-        .eq('id', projectId)
-        .select()
-        .single();
-      data = retry.data;
-      error = retry.error;
-    }
-
     if (error) {
       console.error('Project update DB error:', error);
       return res.status(400).json({ error: error.message || 'Failed to update project' });
     }
 
-    res.json(data || { id: projectId, ...updates });
+    res.json(normalizeProject(data || { id: projectId, ...updates }));
   } catch (error) {
     console.error('Project update route error:', error);
     res.status(500).json({ error: error.message || 'Internal server error during project update' });
@@ -477,15 +552,18 @@ router.post('/:id/reports', requireAuth, async (req, res, next) => {
     }
 
     // Optionally update project progress percentage if passed
-    if (progress_percentage !== undefined && progress_percentage !== null) {
-      const val = Math.min(100, Math.max(0, parseInt(progress_percentage) || 0));
+    if (progress_percentage !== undefined && progress_percentage !== null && progress_percentage !== '') {
+      const val = Math.min(100, Math.max(0, parseInt(progress_percentage, 10) || 0));
       try {
-        await supabase
+        const { error: progUpdateErr } = await supabase
           .from('projects')
-          .update({ progress_percentage: val, current_progress: `${val}%` })
+          .update({ current_progress: `${val}%` })
           .eq('id', projectId);
+        if (progUpdateErr) {
+          console.warn('Progress update warning in reports:', progUpdateErr.message);
+        }
       } catch (progErr) {
-        console.warn('Progress percentage update warning:', progErr.message);
+        console.warn('Progress percentage update warning in reports:', progErr.message);
       }
     }
 
