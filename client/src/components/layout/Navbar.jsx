@@ -69,8 +69,10 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const isDashboard = location.pathname.includes('/entrepreneur') || location.pathname.includes('/investor');
-  const basePath = profile?.role === 'entrepreneur' ? '/entrepreneur' : '/investor';
+  const userRole = (profile?.role || '').toLowerCase();
+  const isAdmin = userRole === 'super_admin' || userRole === 'admin';
+  const isDashboard = location.pathname.includes('/entrepreneur') || location.pathname.includes('/investor') || location.pathname.includes('/admin');
+  const basePath = isAdmin ? '/admin' : profile?.role === 'entrepreneur' ? '/entrepreneur' : '/investor';
 
   const navLinks = isDashboard ? [
     { name: 'Home', path: '/', icon: Home },
@@ -176,7 +178,7 @@ const Navbar = () => {
                           unreadMessages.map((msg) => (
                             <Link 
                               key={msg.id} 
-                              to={`/${profile?.role}/messages`} 
+                              to={`${basePath}/messages`} 
                               onClick={() => setShowNotifications(false)}
                               className="block px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
                             >
@@ -189,7 +191,7 @@ const Navbar = () => {
                         )}
                       </div>
                       <div className="px-4 py-2 border-t border-gray-50 text-center">
-                        <Link onClick={() => setShowNotifications(false)} to={`/${profile?.role}/messages`} className="text-xs text-primary font-medium hover:underline">View all notifications</Link>
+                        <Link onClick={() => setShowNotifications(false)} to={`${basePath}/messages`} className="text-xs text-primary font-medium hover:underline">View all notifications</Link>
                       </div>
                     </div>
                   )}
@@ -220,16 +222,36 @@ const Navbar = () => {
                     <div className="absolute top-full right-0 mt-2.5 w-52 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden py-1.5 animate-in fade-in-50 duration-150">
                       <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50/60">
                         <p className="text-xs font-semibold text-gray-900 truncate">{profile?.full_name || 'User'}</p>
-                        <p className="text-[11px] text-gray-500 capitalize">{profile?.role || 'Member'}</p>
+                        <p className="text-[11px] text-gray-500 font-medium">
+                          {userRole === 'super_admin' ? 'Super Admin' : userRole === 'admin' ? 'Administrator' : userRole === 'entrepreneur' ? 'Entrepreneur' : 'Investor'}
+                        </p>
                       </div>
 
                       <Link
-                        to={profile?.role === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'}
+                        to={`${basePath}/dashboard`}
                         onClick={() => setShowProfileMenu(false)}
                         className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
                       >
                         <LayoutDashboard className="w-4 h-4 text-primary" />
                         <span>Dashboard</span>
+                      </Link>
+
+                      <Link
+                        to={`${basePath}/profile`}
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                      >
+                        <User className="w-4 h-4 text-primary" />
+                        <span>My Profile</span>
+                      </Link>
+
+                      <Link
+                        to={`${basePath}/settings`}
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                      >
+                        <Settings className="w-4 h-4 text-primary" />
+                        <span>Settings</span>
                       </Link>
 
                       <button

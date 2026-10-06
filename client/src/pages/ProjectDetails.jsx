@@ -19,7 +19,10 @@ import {
   Edit3,
   FileText,
   PlusCircle,
-  Trash2
+  Trash2,
+  FileArchive,
+  Upload,
+  Download
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -144,6 +147,69 @@ const ProjectDetails = () => {
       setReports(prev => prev.filter(r => r.id !== reportId));
     } catch (err) {
       alert(`Failed to delete report: ${err.message}`);
+    }
+  };
+
+  // Phase Evidence Upload Modal State
+  const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
+  const [evidencePhaseId, setEvidencePhaseId] = useState(null);
+  const [evidenceFile, setEvidenceFile] = useState(null);
+  const [evidenceSummary, setEvidenceSummary] = useState('');
+  const [isSubmittingEvidence, setIsSubmittingEvidence] = useState(false);
+  const [evidenceError, setEvidenceError] = useState('');
+
+  const handleOpenEvidenceModal = (phase) => {
+    setEvidencePhaseId(phase.id);
+    setEvidenceFile(null);
+    setEvidenceSummary('');
+    setEvidenceError('');
+    setIsEvidenceModalOpen(true);
+  };
+
+  const handleEvidenceSubmit = async (e) => {
+    e.preventDefault();
+    if (!evidenceFile) {
+      setEvidenceError('Please select a ZIP file or deliverables document as evidence.');
+      return;
+    }
+
+    setIsSubmittingEvidence(true);
+    setEvidenceError('');
+
+    try {
+      // 1. Upload ZIP file to Supabase storage
+      const { publicUrl, fileName } = await api.uploadPhaseEvidence(id, evidenceFile);
+
+      // 2. Identify target phase
+      const targetPhase = (project.phases || []).find(p => p.id === evidencePhaseId);
+
+      // 3. Update phase status to Completed and store evidence details
+      await api.updateProjectPhase(id, evidencePhaseId, {
+        status: 'Completed',
+        evidence_url: publicUrl,
+        evidence_name: fileName,
+        evidence_submitted_at: new Date().toISOString(),
+        create_evidence_report: true,
+        report_title: `Phase ${targetPhase?.phase_number || ''} Completion Evidence: ${targetPhase?.title || ''}`,
+        report_summary: evidenceSummary || `Entrepreneur uploaded completion evidence file (${fileName}) for investor review.`,
+        key_achievements: `Completed Phase ${targetPhase?.phase_number || ''} deliverables and uploaded evidence archive (${fileName}).`,
+        next_steps: 'Proceeding to next project phase.'
+      });
+
+      // 4. Refresh project data and reports list
+      const updatedProject = await api.getProject(id);
+      setProject(updatedProject);
+      await fetchReports();
+
+      setIsEvidenceModalOpen(false);
+      setEvidenceFile(null);
+      setEvidenceSummary('');
+      setEvidencePhaseId(null);
+    } catch (err) {
+      console.error(err);
+      setEvidenceError(err.message || 'Failed to upload phase evidence');
+    } finally {
+      setIsSubmittingEvidence(false);
     }
   };
 
@@ -461,19 +527,37 @@ const ProjectDetails = () => {
                               {phase.status}
                             </span>
 
-                            {/* Owner phase status switcher */}
+                            {/* Owner phase status switcher & evidence upload button */}
                             {isOwner && (
-                              <select
-                                value={phase.status}
-                                disabled={phaseActionLoading === phase.id}
-                                onChange={(e) => handleUpdatePhaseStatus(phase.id, e.target.value)}
-                                className="text-xs border border-gray-200 bg-white text-gray-700 rounded-lg px-2 py-1 outline-none font-medium hover:border-gray-300"
-                              >
-                                <option value="Upcoming">Upcoming</option>
-                                <option value="Active">Active</option>
-                                <option value="Funded">Funded</option>
-                                <option value="Completed">Completed</option>
-                              </select>
+                              <div className="flex items-center gap-2">
+                                <select
+                                  value={phase.status}
+                                  disabled={phaseActionLoading === phase.id}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === 'Completed') {
+                                      handleOpenEvidenceModal(phase);
+                                    } else {
+                                      handleUpdatePhaseStatus(phase.id, val);
+                                    }
+                                  }}
+                                  className="text-xs border border-gray-200 bg-white text-gray-700 rounded-lg px-2 py-1 outline-none font-medium hover:border-gray-300"
+                                >
+                                  <option value="Upcoming">Upcoming</option>
+                                  <option value="Active">Active</option>
+                                  <option value="Funded">Funded</option>
+                                  <option value="Completed">Completed</option>
+                                </select>
+
+                                <button
+                                  onClick={() => handleOpenEvidenceModal(phase)}
+                                  className="inline-flex items-center gap-1.5 text-xs font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 px-3 py-1 rounded-lg transition-colors shadow-2xs"
+                                  title="Upload proof ZIP archive for this phase"
+                                >
+                                  <FileArchive size={14} />
+                                  <span>{phase.evidence_url ? 'Update Evidence' : 'Submit Evidence (.zip)'}</span>
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -483,6 +567,38 @@ const ProjectDetails = () => {
                           <p className="text-gray-600 text-sm mb-4 leading-relaxed pl-11">
                             {phase.description}
                           </p>
+                        )}
+
+                        {/* Phase Evidence ZIP Card (if uploaded) */}
+                        {phase.evidence_url && (
+                          <div className="pl-11 mb-4">
+                            <div className="p-3.5 bg-purple-50/80 border border-purple-200/80 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700 font-bold flex-shrink-0">
+                                  <FileArchive size={20} />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-xs font-bold text-gray-900">Phase Completion Evidence</span>
+                                    <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
+                                  </div>
+                                  <p className="text-xs text-gray-600 truncate max-w-[220px] sm:max-w-xs font-medium mt-0.5">
+                                    {phase.evidence_name || 'Deliverable ZIP Archive'}
+                                  </p>
+                                </div>
+                              </div>
+                              <a
+                                href={phase.evidence_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                download
+                                className="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg shadow-xs transition-colors flex-shrink-0"
+                              >
+                                <Download size={14} />
+                                <span>Download Evidence (.zip)</span>
+                              </a>
+                            </div>
+                          </div>
                         )}
 
                         {/* Financial Progress Bar */}
@@ -621,6 +737,24 @@ const ProjectDetails = () => {
                             <ArrowRight className="w-3.5 h-3.5 text-blue-600" /> Next Planned Steps:
                           </strong>
                           <span className="whitespace-pre-line">{rep.next_steps}</span>
+                        </div>
+                      )}
+
+                      {rep.attachment_url && (
+                        <div className="mt-3 p-3 bg-purple-50/70 border border-purple-200 rounded-lg flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileArchive className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                            <span className="text-xs font-bold text-gray-800">Attached Deliverables Evidence Archive</span>
+                          </div>
+                          <a
+                            href={rep.attachment_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="inline-flex items-center gap-1.5 text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 px-3 py-1.5 rounded-lg shadow-2xs transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" /> Download (.zip)
+                          </a>
                         </div>
                       )}
                     </div>
@@ -1115,6 +1249,105 @@ const ProjectDetails = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Phase Completion Evidence ZIP Modal */}
+      {isEvidenceModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-purple-50/70">
+              <div className="flex items-center gap-2.5">
+                <FileArchive className="w-5 h-5 text-purple-700" />
+                <h3 className="text-lg font-bold text-gray-900">Submit Phase Deliverables Evidence</h3>
+              </div>
+              <button 
+                onClick={() => setIsEvidenceModalOpen(false)} 
+                className="text-gray-400 hover:text-gray-600 font-bold text-xl leading-none"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="p-6">
+              {evidenceError && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-200 font-medium">
+                  {evidenceError}
+                </div>
+              )}
+
+              <form onSubmit={handleEvidenceSubmit} className="space-y-5">
+                <div className="p-3.5 bg-blue-50/70 rounded-xl border border-blue-100 text-xs text-blue-900 leading-relaxed">
+                  <strong>Proof of Completion:</strong> Please upload a compressed archive file (e.g. <code>.zip</code>, <code>.rar</code>, <code>.7z</code>, or PDF report) containing work deliverables, code, receipts, or images confirming phase completion.
+                </div>
+
+                {/* ZIP File Upload Input */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                    Evidence File (ZIP / Deliverables Archive) *
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:border-purple-400 transition-colors bg-gray-50/50">
+                    <FileArchive className="w-10 h-10 text-purple-500 mx-auto mb-2" />
+                    <label className="cursor-pointer">
+                      <span className="text-xs font-bold text-purple-700 hover:underline block mb-1">
+                        {evidenceFile ? evidenceFile.name : 'Choose Evidence ZIP File'}
+                      </span>
+                      <span className="text-[11px] text-gray-400 block">
+                        Supports ZIP, RAR, 7Z, PDF, DOCX (Max 50MB)
+                      </span>
+                      <input 
+                        type="file" 
+                        accept=".zip,.rar,.7z,.tar.gz,.pdf,.docx"
+                        onChange={(e) => setEvidenceFile(e.target.files[0])}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Completion Summary */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                    Evidence Description & Completion Notes
+                  </label>
+                  <textarea 
+                    rows={3}
+                    placeholder="Describe what is contained in this ZIP evidence file (e.g. software build, architecture design, supplier receipts)..."
+                    value={evidenceSummary}
+                    onChange={(e) => setEvidenceSummary(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                  />
+                </div>
+
+                <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
+                  <button 
+                    type="button"
+                    onClick={() => setIsEvidenceModalOpen(false)}
+                    className="px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-100 rounded-xl font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isSubmittingEvidence || !evidenceFile}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 text-sm rounded-xl font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isSubmittingEvidence ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Uploading Evidence...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        <span>Upload & Complete Phase</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_TARGET || 'https://site--maalhub--y68f9gmylt64.code.run',
+        target: process.env.VITE_API_TARGET || 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
       },

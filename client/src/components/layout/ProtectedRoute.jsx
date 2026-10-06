@@ -6,16 +6,26 @@ const ProtectedRoute = ({ children, allowedRole }) => {
   const { user, profile, loading } = useAuth();
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>;
   }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRole && profile && profile.role !== allowedRole) {
-    // If they are logged in but trying to access the wrong role's dashboard
-    return <Navigate to={profile.role === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'} replace />;
+  if (allowedRole && profile) {
+    const userRole = (profile.role || '').toLowerCase();
+    const targetRole = allowedRole.toLowerCase();
+
+    const isAdmin = userRole === 'super_admin' || userRole === 'admin';
+
+    if (targetRole === 'super_admin' || targetRole === 'admin') {
+      if (!isAdmin) {
+        return <Navigate to={userRole === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'} replace />;
+      }
+    } else if (userRole !== targetRole && !isAdmin) {
+      return <Navigate to={userRole === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'} replace />;
+    }
   }
 
   return children;

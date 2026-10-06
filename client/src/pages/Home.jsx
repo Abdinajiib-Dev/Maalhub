@@ -70,7 +70,17 @@ const Home = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
-                {user && profile?.role === 'entrepreneur' ? (
+                {user && (profile?.role === 'super_admin' || profile?.role === 'admin') ? (
+                  <>
+                    <Link to="/admin/dashboard" className="inline-flex justify-center items-center px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-[#7a5338] transition-colors shadow-lg hover:shadow-xl group text-base">
+                      Admin Control Center
+                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                    <Link to="/admin/users" className="inline-flex justify-center items-center px-6 py-3 border-2 border-text text-text font-medium rounded-lg hover:bg-gray-100 transition-colors text-base">
+                      Manage Users
+                    </Link>
+                  </>
+                ) : user && profile?.role === 'entrepreneur' ? (
                   <>
                     <Link to="/entrepreneur/create-project" className="inline-flex justify-center items-center px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-[#7a5338] transition-colors shadow-lg hover:shadow-xl group text-base">
                       Submit Your Project

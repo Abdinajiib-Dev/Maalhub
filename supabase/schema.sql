@@ -106,6 +106,9 @@ CREATE TABLE public.project_investment_phases (
     status TEXT NOT NULL DEFAULT 'Upcoming' CHECK (status IN ('Upcoming', 'Active', 'Funded', 'Completed')),
     start_date DATE,
     target_date DATE,
+    evidence_url TEXT,
+    evidence_name TEXT,
+    evidence_submitted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

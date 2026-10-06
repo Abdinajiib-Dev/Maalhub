@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, MapPin, Calendar, Briefcase, Building, TrendingUp, Layers } from 'lucide-react';
+import { Mail, MapPin, Calendar, Briefcase, Building, TrendingUp, Layers, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { api } from '../../lib/api';
 
 const Profile = () => {
@@ -13,9 +13,9 @@ const Profile = () => {
     const fetchRoleDetails = async () => {
       try {
         setLoading(true);
-        // The getProfile function in api.js likely fetches the full profile with roleDetails
+        // The getProfile function in api.js fetches profile with roleDetails
         const data = await api.getUserProfile(user.id);
-        setRoleDetails(data.roleDetails);
+        setRoleDetails(data?.roleDetails || null);
       } catch (err) {
         console.error("Failed to fetch role details", err);
       } finally {
@@ -23,10 +23,12 @@ const Profile = () => {
       }
     };
     
-    if (user) {
+    if (user && profile?.role !== 'super_admin' && profile?.role !== 'admin') {
       fetchRoleDetails();
+    } else {
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, profile]);
 
   if (!profile) return null;
 
@@ -34,7 +36,21 @@ const Profile = () => {
     return name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U';
   };
 
-  const isEntrepreneur = profile.role === 'entrepreneur';
+  const userRole = (profile.role || '').toLowerCase();
+  const isAdmin = userRole === 'super_admin' || userRole === 'admin';
+  const isEntrepreneur = userRole === 'entrepreneur';
+  const isInvestor = userRole === 'investor';
+  const basePath = isAdmin ? '/admin' : isEntrepreneur ? '/entrepreneur' : '/investor';
+
+  const formatRoleLabel = (role) => {
+    if (!role) return 'Member';
+    const norm = role.toLowerCase();
+    if (norm === 'super_admin') return 'Super Admin';
+    if (norm === 'admin') return 'Administrator';
+    if (norm === 'entrepreneur') return 'Entrepreneur';
+    if (norm === 'investor') return 'Investor';
+    return role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 w-full max-w-[1200px] mx-auto">
@@ -60,20 +76,35 @@ const Profile = () => {
             </div>
             
             <h2 className="text-lg sm:text-xl font-bold text-gray-900">{profile.full_name}</h2>
-            <p className="text-sm text-gray-500 capitalize mb-4 flex items-center gap-1">
-              <Briefcase size={14} />
-              {profile.role}
+            <p className="text-sm text-gray-500 mb-4 flex items-center justify-center gap-1.5 font-medium">
+              {isAdmin ? (
+                <ShieldCheck size={15} className="text-purple-600" />
+              ) : isEntrepreneur ? (
+                <Building size={15} className="text-primary" />
+              ) : (
+                <TrendingUp size={15} className="text-emerald-600" />
+              )}
+              {formatRoleLabel(profile.role)}
             </p>
             
-            <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full mb-6 ${
-              isEntrepreneur ? 'bg-primary/10 text-primary' : 'bg-green-100 text-green-700'
-            }`}>
-              {isEntrepreneur ? 'Startup Founder' : 'Verified Investor'}
-            </span>
+            {isAdmin ? (
+              <span className="px-3.5 py-1 text-xs font-bold uppercase tracking-wider rounded-full mb-6 bg-purple-100 text-purple-700 border border-purple-200/80 flex items-center gap-1.5 shadow-xs">
+                <ShieldCheck size={14} />
+                {userRole === 'super_admin' ? 'Super Admin' : 'Administrator'}
+              </span>
+            ) : isEntrepreneur ? (
+              <span className="px-3.5 py-1 text-xs font-bold uppercase tracking-wider rounded-full mb-6 bg-primary/10 text-primary border border-primary/20 shadow-xs">
+                Startup Founder
+              </span>
+            ) : (
+              <span className="px-3.5 py-1 text-xs font-bold uppercase tracking-wider rounded-full mb-6 bg-green-100 text-green-700 border border-green-200 shadow-xs">
+                Verified Investor
+              </span>
+            )}
             
             <Link 
-              to={`/${profile.role}/settings`} 
-              className="w-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium text-sm py-2 rounded-lg transition-colors text-center shadow-xs"
+              to={`${basePath}/settings`} 
+              className="w-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium text-sm py-2 rounded-lg transition-colors text-center shadow-xs block"
             >
               Edit Profile
             </Link>
@@ -102,7 +133,7 @@ const Profile = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-gray-500 mb-0.5">Location</p>
-                  <p className="text-sm text-gray-900 font-medium truncate">{profile.city}, {profile.country}</p>
+                  <p className="text-sm text-gray-900 font-medium truncate">{profile.city || 'Not specified'}, {profile.country || 'Not specified'}</p>
                 </div>
               </div>
 
@@ -120,8 +151,55 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Role Specific Details */}
-          {!loading && roleDetails && (
+          {/* Admin Specific Privileges & Access Card */}
+          {isAdmin && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                <ShieldCheck className="text-purple-600" size={20} />
+                Administrative Privileges & Access
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 flex-shrink-0">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-500 mb-0.5">System Access Level</p>
+                    <p className="text-sm text-gray-900 font-semibold truncate">
+                      {userRole === 'super_admin' ? 'Full Super Admin Control' : 'Administrator Control'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                    <CheckCircle2 size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-500 mb-0.5">Account Status</p>
+                    <p className="text-sm text-emerald-700 font-semibold truncate flex items-center gap-1">
+                      Active Administrator
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 sm:col-span-2">
+                  <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0">
+                    <Briefcase size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-500 mb-0.5">Platform Permissions</p>
+                    <p className="text-sm text-gray-700 font-medium leading-relaxed">
+                      User role administration, project moderation & publication management, system statistics oversight, and administrative support.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Entrepreneur / Investor Role Specific Details */}
+          {!isAdmin && !loading && roleDetails && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sm:p-6">
               <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6">
                 {isEntrepreneur ? 'Business Profile' : 'Investment Preferences'}
@@ -178,7 +256,7 @@ const Profile = () => {
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-gray-500 mb-0.5">Investment Range</p>
                       <p className="text-sm text-gray-900 font-medium truncate">
-                        ${Number(roleDetails.minimum_investment).toLocaleString()} - ${Number(roleDetails.maximum_investment).toLocaleString()}
+                        ${Number(roleDetails.minimum_investment || 0).toLocaleString()} - ${Number(roleDetails.maximum_investment || 0).toLocaleString()}
                       </p>
                     </div>
                   </div>

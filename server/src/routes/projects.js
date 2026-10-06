@@ -251,8 +251,10 @@ router.post('/', requireAuth, validate(projectSchema), async (req, res, next) =>
     }
 
     // Merge the auto-populated fields with the request body
+    // All projects created by entrepreneurs default to Draft (Awaiting Admin Review)
     const projectData = { 
       ...rawProjectData, 
+      status: 'Draft',
       current_progress: `${initialProgress}%`,
       entrepreneur_id: req.user.id,
       business_name: req.body.business_name || entProfile?.startup_company_name || 'Startup Business',
@@ -472,6 +474,9 @@ router.put('/:id/phases/:phaseId', requireAuth, async (req, res, next) => {
     if (req.body.status !== undefined) updates.status = req.body.status;
     if (req.body.phase_number !== undefined) updates.phase_number = Number(req.body.phase_number);
     if (req.body.target_date !== undefined) updates.target_date = req.body.target_date;
+    if (req.body.evidence_url !== undefined) updates.evidence_url = req.body.evidence_url;
+    if (req.body.evidence_name !== undefined) updates.evidence_name = req.body.evidence_name;
+    if (req.body.evidence_submitted_at !== undefined) updates.evidence_submitted_at = req.body.evidence_submitted_at;
 
     const { data, error } = await supabase
       .from('project_investment_phases')
@@ -482,6 +487,27 @@ router.put('/:id/phases/:phaseId', requireAuth, async (req, res, next) => {
       .single();
 
     if (error) throw error;
+
+    // If phase completion report parameters are provided, post an evidence report
+    if (req.body.create_evidence_report && req.body.evidence_url) {
+      try {
+        const reportTitle = req.body.report_title || `Phase ${data.phase_number} Completion Evidence: ${data.title}`;
+        const reportSummary = req.body.report_summary || `Entrepreneur submitted phase completion evidence file (${req.body.evidence_name || 'Deliverable ZIP archive'}).`;
+        
+        await saveReportForProject(projectId, req.user.id, {
+          title: reportTitle,
+          summary: reportSummary,
+          key_achievements: req.body.key_achievements || `Completed Phase ${data.phase_number} deliverables.`,
+          next_steps: req.body.next_steps || 'Proceeding to next phase.',
+          phase_id: phaseId,
+          report_type: 'Achievements',
+          attachment_url: req.body.evidence_url
+        });
+      } catch (repErr) {
+        console.warn('Auto-create evidence report error:', repErr.message);
+      }
+    }
+
     res.json(data);
   } catch (error) {
     next(error);

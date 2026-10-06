@@ -38,7 +38,10 @@ const Login = () => {
           .single();
           
         if (!profileError && profile?.role) {
-          if (profile.role === 'entrepreneur') {
+          const userRole = (profile.role || '').toLowerCase();
+          if (userRole === 'super_admin' || userRole === 'admin') {
+            navigate('/admin/dashboard');
+          } else if (userRole === 'entrepreneur') {
             navigate('/entrepreneur/dashboard');
           } else {
             navigate('/investor/dashboard');
@@ -46,10 +49,10 @@ const Login = () => {
           return;
         }
       } catch (pErr) {
-        // Ignore profile fetch error and fallback to entrepreneur dashboard
+        // Ignore profile fetch error
       }
 
-      navigate('/entrepreneur/dashboard');
+      navigate('/admin/dashboard');
       
     } catch (err) {
       setError(err.message || 'Failed to sign in. Please check your credentials.');
