@@ -192,7 +192,7 @@ const Dashboard = () => {
                           project.status === 'Draft' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
                           'bg-gray-100 text-gray-700 border border-gray-200'
                         }`}>
-                          {project.status === 'Published' ? 'Active' : project.status}
+                          {project.status === 'Published' ? 'Active / Published' : project.status === 'Draft' ? 'Pending Review' : project.status}
                         </span>
                       </div>
                       

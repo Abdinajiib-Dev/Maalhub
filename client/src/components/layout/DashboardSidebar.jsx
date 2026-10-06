@@ -22,10 +22,12 @@ const getCircledNumber = (num) => {
 const DashboardSidebar = ({ mobileOpen, onClose }) => {
   const location = useLocation();
   const { user, profile } = useAuth();
-  const isEntrepreneur = profile?.role === 'entrepreneur';
+  const userRole = (profile?.role || '').toLowerCase();
+  const isAdmin = userRole === 'super_admin' || userRole === 'admin';
+  const isEntrepreneur = userRole === 'entrepreneur';
   const [unreadCount, setUnreadCount] = useState(0);
   
-  const basePath = isEntrepreneur ? '/entrepreneur' : '/investor';
+  const basePath = isAdmin ? '/admin' : isEntrepreneur ? '/entrepreneur' : '/investor';
 
   useEffect(() => {
     if (!user) return;
@@ -60,7 +62,14 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
     };
   }, [user]);
 
-  const navLinks = [
+  const navLinks = isAdmin ? [
+    { name: 'Dashboard', path: `${basePath}/dashboard`, icon: Home },
+    { name: 'User Management', path: `${basePath}/users`, icon: Users },
+    { name: 'Project Moderation', path: `${basePath}/projects`, icon: Kanban },
+    { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
+    { name: 'Profile', path: `${basePath}/profile`, icon: User },
+    { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
+  ] : [
     { name: 'Dashboard', path: `${basePath}/dashboard`, icon: Home },
     { 
       name: isEntrepreneur ? 'My Projects' : 'My Investments', 

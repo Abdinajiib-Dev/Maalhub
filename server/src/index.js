@@ -14,6 +14,7 @@ import savedProjectsRoutes from './routes/savedProjects.js';
 import investmentRequestsRoutes from './routes/investmentRequests.js';
 import messagesRoutes from './routes/messages.js';
 import contactRoutes from './routes/contact.js';
+import adminRoutes from './routes/admin.js';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use('/api/saved-projects', savedProjectsRoutes);
 app.use('/api/investment-requests', investmentRequestsRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Basic health check
 app.get('/api/health', (req, res) => {

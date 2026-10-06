@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "npm start --workspace=server",
-    "dev": "cmd /c \"npm run dev --workspace=server\" & cmd /c \"npm run dev --workspace=client\"",
+    "dev": "npx concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
     "dev:server": "npm run dev --workspace=server",
     "dev:client": "npm run dev --workspace=client"
   },

@@ -194,4 +194,50 @@ export const api = {
 
     return publicUrl;
   },
+
+  uploadPhaseEvidence: async (projectId, file) => {
+    const fileExt = file.name.split('.').pop();
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `project-${projectId}/${Date.now()}-${cleanFileName}`;
+
+    let bucketName = 'phase-evidence';
+    
+    // Attempt upload to phase-evidence bucket, fallback to project-documents
+    let { error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+    if (uploadError && uploadError.message?.includes('not found')) {
+      bucketName = 'project-documents';
+      const retry = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+      uploadError = retry.error;
+    }
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(filePath);
+
+    return { publicUrl, fileName: file.name };
+  },
+
+  // Admin API Methods
+  getAdminStats: () => fetchWithAuth('/admin/stats'),
+  getAdminUsers: () => fetchWithAuth('/admin/users'),
+  updateUserRole: (id, role) => fetchWithAuth(`/admin/users/${id}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role }),
+  }),
+  deleteUserAdmin: (id) => fetchWithAuth(`/admin/users/${id}`, { method: 'DELETE' }),
+  getAdminProjects: () => fetchWithAuth('/admin/projects'),
+  updateProjectStatusAdmin: (id, status) => fetchWithAuth(`/admin/projects/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  }),
+  deleteProjectAdmin: (id) => fetchWithAuth(`/admin/projects/${id}`, { method: 'DELETE' }),
 };

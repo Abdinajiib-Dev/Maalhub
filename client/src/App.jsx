@@ -17,6 +17,9 @@ import EntrepreneurDashboard from './pages/Entrepreneur/Dashboard';
 import CreateProject from './pages/Entrepreneur/CreateProject';
 import MyProjects from './pages/Entrepreneur/MyProjects';
 import InvestorDashboard from './pages/Investor/Dashboard';
+import AdminDashboard from './pages/Admin/Dashboard';
+import AdminUsers from './pages/Admin/Users';
+import AdminProjects from './pages/Admin/Projects';
 import InvestmentRequests from './pages/Shared/InvestmentRequests';
 import Messages from './pages/Shared/Messages';
 import Placeholder from './pages/Shared/Placeholder';
@@ -83,6 +86,21 @@ function App() {
             <Route path="dashboard" element={<InvestorDashboard />} />
             <Route path="investments" element={<MyInvestments />} />
             <Route path="projects" element={<MyInvestments />} />
+            <Route path="requests" element={<InvestmentRequests />} />
+            <Route path="messages" element={<Messages />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+
+          {/* Protected Super Admin Routes */}
+          <Route path="admin" element={
+            <ProtectedRoute allowedRole="super_admin">
+              <Outlet />
+            </ProtectedRoute>
+          }>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="projects" element={<AdminProjects />} />
             <Route path="requests" element={<InvestmentRequests />} />
             <Route path="messages" element={<Messages />} />
             <Route path="profile" element={<Profile />} />
