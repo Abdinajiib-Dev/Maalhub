@@ -29,13 +29,15 @@ import MyInvestments from './pages/Investor/MyInvestments';
 import Profile from './pages/Shared/Profile';
 import Settings from './pages/Shared/Settings';
 import { AuthProvider } from './contexts/AuthContext';
+import { DialogProvider } from './contexts/DialogContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ScrollToTop from './components/layout/ScrollToTop';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <DialogProvider>
+        <Router>
         <ScrollToTop />
         <Routes>
         {/* Public Routes with Standard Layout */}
@@ -111,6 +113,7 @@ function App() {
         </Route>
       </Routes>
     </Router>
+      </DialogProvider>
     </AuthProvider>
   );
 }

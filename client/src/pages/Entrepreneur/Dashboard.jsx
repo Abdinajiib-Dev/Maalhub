@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDialog } from '../../contexts/DialogContext';
 import { 
   FolderOpen, 
   DollarSign, 
@@ -15,6 +16,7 @@ import {
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
+  const { showAlert, toast } = useDialog();
   const [projects, setProjects] = useState([]);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,8 +47,13 @@ const Dashboard = () => {
     try {
       await api.updateRequestStatus(id, status);
       setRequests(requests.map(req => req.id === id ? { ...req, status } : req));
+      toast.success(`Request ${status.toLowerCase()} successfully.`);
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showAlert({
+        title: 'Action Failed',
+        message: err.message || 'Error updating investment request',
+        variant: 'error'
+      });
     }
   };
 

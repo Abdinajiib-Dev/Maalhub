@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bookmark, FolderOpen, ArrowRight, Loader2, Trash2 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { useDialog } from '../../contexts/DialogContext';
 
 const ExploreProjects = () => {
+  const { confirm, showAlert, toast } = useDialog();
   const [savedProjects, setSavedProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -25,12 +27,24 @@ const ExploreProjects = () => {
   }, []);
 
   const handleUnsave = async (projectId) => {
-    if (!window.confirm('Remove this project from your saved list?')) return;
+    const ok = await confirm({
+      title: 'Remove Saved Project',
+      message: 'Remove this project from your saved list?',
+      confirmText: 'Remove',
+      variant: 'warning'
+    });
+    if (!ok) return;
+
     try {
       await api.unsaveProject(projectId);
+      toast.success('Project removed from saved list.');
       fetchSavedProjects();
     } catch (err) {
-      alert(`Error removing project: ${err.message}`);
+      showAlert({
+        title: 'Error Removing Project',
+        message: err.message || 'Error removing saved project',
+        variant: 'error'
+      });
     }
   };
 

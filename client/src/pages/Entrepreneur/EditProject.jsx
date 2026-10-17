@@ -18,8 +18,10 @@ import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { PROJECT_CATEGORIES } from '../../constants/categories';
 import ProjectProgressBar from '../../components/ProjectProgressBar';
+import { useDialog } from '../../contexts/DialogContext';
 
 const EditProject = () => {
+  const { confirm, showAlert, toast } = useDialog();
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -139,13 +141,23 @@ const EditProject = () => {
   const handleRemovePhase = async (index) => {
     const phaseToRemove = phases[index];
     if (phaseToRemove && !phaseToRemove.isNew && phaseToRemove.id) {
-      if (!window.confirm(`Are you sure you want to remove ${phaseToRemove.title || 'this phase'}?`)) {
-        return;
-      }
+      const ok = await confirm({
+        title: 'Remove Project Phase',
+        message: `Are you sure you want to remove "${phaseToRemove.title || 'this phase'}"?`,
+        confirmText: 'Remove Phase',
+        variant: 'danger'
+      });
+      if (!ok) return;
+
       try {
         await api.deleteProjectPhase(id, phaseToRemove.id);
+        toast.success('Phase deleted successfully.');
       } catch (err) {
-        alert('Failed to delete phase from database: ' + err.message);
+        showAlert({
+          title: 'Delete Phase Failed',
+          message: err.message || 'Failed to delete phase from database',
+          variant: 'error'
+        });
         return;
       }
     }

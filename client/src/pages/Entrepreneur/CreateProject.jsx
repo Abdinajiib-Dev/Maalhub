@@ -4,8 +4,10 @@ import { useForm } from 'react-hook-form';
 import { Plus, Trash2, Layers, Calendar, DollarSign, CheckCircle2, TrendingUp } from 'lucide-react';
 import { api } from '../../lib/api';
 import { PROJECT_CATEGORIES } from '../../constants/categories';
+import { useDialog } from '../../contexts/DialogContext';
 
 const CreateProject = () => {
+  const { showAlert, toast } = useDialog();
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
     defaultValues: {
       progress_percentage: 0
@@ -101,7 +103,7 @@ const CreateProject = () => {
 
       await api.createProject(payload);
 
-      alert('Project created successfully!');
+      toast.success('Project created successfully!');
       navigate('/entrepreneur/dashboard');
     } catch (err) {
       setError(err.message);

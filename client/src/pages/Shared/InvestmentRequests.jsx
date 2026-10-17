@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Loader2, DollarSign, MessageSquare, Clock, CheckCircle, XCircle, AlertCircle, Layers } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDialog } from '../../contexts/DialogContext';
 
 const InvestmentRequests = () => {
   const { profile } = useAuth();
+  const { showAlert, toast } = useDialog();
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,10 +34,14 @@ const InvestmentRequests = () => {
     try {
       setActionLoading(id);
       await api.updateRequestStatus(id, status);
-      // Update local state to reflect the change immediately
       setRequests(requests.map(req => req.id === id ? { ...req, status } : req));
+      toast.success(`Request status updated to ${status}.`);
     } catch (err) {
-      alert(`Failed to update status: ${err.message}`);
+      showAlert({
+        title: 'Status Update Failed',
+        message: err.message || 'Failed to update request status',
+        variant: 'error'
+      });
     } finally {
       setActionLoading(null);
     }
@@ -45,14 +51,17 @@ const InvestmentRequests = () => {
     try {
       setActionLoading('msg-' + userId);
       const conv = await api.startConversation(userId);
-      // Navigate to messages tab and open existing or new chat thread
       if (conv && conv.id) {
         navigate('../messages', { state: { selectedConvId: conv.id } });
       } else {
         navigate('../messages');
       }
     } catch (err) {
-      alert(`Failed to start conversation: ${err.message}`);
+      showAlert({
+        title: 'Conversation Error',
+        message: err.message || 'Failed to start conversation',
+        variant: 'error'
+      });
     } finally {
       setActionLoading(null);
     }

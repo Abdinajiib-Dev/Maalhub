@@ -4,9 +4,11 @@ import { Send, Loader2, MessageSquare, Search, User, ArrowLeft } from 'lucide-re
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDialog } from '../../contexts/DialogContext';
 
 const Messages = () => {
   const { user } = useAuth();
+  const { showAlert } = useDialog();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   
@@ -212,7 +214,11 @@ const Messages = () => {
         ).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
       );
     } catch (err) {
-      alert('Failed to send message: ' + err.message);
+      showAlert({
+        title: 'Message Delivery Failed',
+        message: err.message || 'Failed to send message',
+        variant: 'error'
+      });
     } finally {
       setIsSending(false);
     }

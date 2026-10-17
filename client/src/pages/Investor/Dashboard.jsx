@@ -15,9 +15,11 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import ProjectProgressBar from '../../components/ProjectProgressBar';
+import { useDialog } from '../../contexts/DialogContext';
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
+  const { confirm, showAlert, toast } = useDialog();
   const [savedProjects, setSavedProjects] = useState([]);
   const [requests, setRequests] = useState([]);
   const [myInvestments, setMyInvestments] = useState([]);
@@ -53,12 +55,24 @@ const Dashboard = () => {
   }, [user]);
 
   const handleWithdrawRequest = async (id) => {
-    if (!window.confirm('Are you sure you want to withdraw this investment offer?')) return;
+    const ok = await confirm({
+      title: 'Withdraw Offer',
+      message: 'Are you sure you want to withdraw this investment offer?',
+      confirmText: 'Withdraw Offer',
+      variant: 'warning'
+    });
+    if (!ok) return;
+
     try {
       await api.updateRequestStatus(id, 'Withdrawn');
       setRequests(requests.map(req => req.id === id ? { ...req, status: 'Withdrawn' } : req));
+      toast.success('Investment offer withdrawn.');
     } catch (err) {
-      alert(`Error withdrawing request: ${err.message}`);
+      showAlert({
+        title: 'Withdrawal Failed',
+        message: err.message || 'Error withdrawing request',
+        variant: 'error'
+      });
     }
   };
 

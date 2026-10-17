@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { API_URL } from '../lib/api';
+import { useDialog } from '../contexts/DialogContext';
 
 const Contact = () => {
+  const { showAlert } = useDialog();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -36,7 +38,11 @@ const Contact = () => {
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
       console.error('Contact form error:', error);
-      alert('Failed to send message. Please try again later.');
+      showAlert({
+        title: 'Delivery Failed',
+        message: 'Failed to send message. Please try again later.',
+        variant: 'error'
+      });
       setStatus('');
     }
   };
@@ -64,7 +70,12 @@ const Contact = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-900">Email</p>
-                    <p className="text-sm text-gray-500">support@maalhub.com</p>
+                    <a 
+                      href="mailto:maalhubsupport@gmail.com" 
+                      className="text-sm text-gray-500 hover:text-primary transition-colors underline-offset-2 hover:underline"
+                    >
+                      maalhubsupport@gmail.com
+                    </a>
                   </div>
                 </div>
 
@@ -74,7 +85,12 @@ const Contact = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-900">Phone</p>
-                    <p className="text-sm text-gray-500">+1 (555) 123-4567</p>
+                    <a 
+                      href="tel:+252619148829" 
+                      className="text-sm text-gray-500 hover:text-primary transition-colors underline-offset-2 hover:underline"
+                    >
+                      +252 619148829
+                    </a>
                   </div>
                 </div>
 
@@ -84,7 +100,7 @@ const Contact = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-900">Office</p>
-                    <p className="text-sm text-gray-500">123 Innovation Drive<br />Tech City, TC 10010</p>
+                    <p className="text-sm text-gray-500">Muqdisho - Somalia</p>
                   </div>
                 </div>
               </div>

@@ -27,11 +27,13 @@ import {
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import ProjectProgressBar from '../components/ProjectProgressBar';
+import { useDialog } from '../contexts/DialogContext';
 
 const ProjectDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { confirm, showAlert, toast } = useDialog();
   
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -141,12 +143,24 @@ const ProjectDetails = () => {
   };
 
   const handleDeleteReport = async (reportId) => {
-    if (!window.confirm('Are you sure you want to delete this report?')) return;
+    const ok = await confirm({
+      title: 'Delete Progress Report',
+      message: 'Are you sure you want to delete this report? This cannot be undone.',
+      confirmText: 'Delete Report',
+      variant: 'danger'
+    });
+    if (!ok) return;
+
     try {
       await api.deleteProjectReport(id, reportId);
       setReports(prev => prev.filter(r => r.id !== reportId));
+      toast.success('Report deleted successfully.');
     } catch (err) {
-      alert(`Failed to delete report: ${err.message}`);
+      showAlert({
+        title: 'Delete Failed',
+        message: err.message || 'Failed to delete report',
+        variant: 'error'
+      });
     }
   };
 
@@ -276,8 +290,13 @@ const ProjectDetails = () => {
         ...prev,
         phases: (prev.phases || []).map(p => p.id === phaseId ? { ...p, status: newStatus } : p)
       }));
+      toast.success(`Phase status updated to ${newStatus}`);
     } catch (err) {
-      alert(`Failed to update phase status: ${err.message}`);
+      showAlert({
+        title: 'Phase Update Failed',
+        message: err.message || 'Failed to update phase status',
+        variant: 'error'
+      });
     } finally {
       setPhaseActionLoading(null);
     }

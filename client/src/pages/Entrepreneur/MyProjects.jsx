@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { Plus, Briefcase, Loader2, Trash2, Layers, TrendingUp, CheckCircle2, Edit } from 'lucide-react';
 import { api } from '../../lib/api';
 import ProjectProgressBar from '../../components/ProjectProgressBar';
+import { useDialog } from '../../contexts/DialogContext';
 
 const MyProjects = () => {
+  const { confirm, showAlert, toast } = useDialog();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -80,13 +82,24 @@ const MyProjects = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
-      try {
-        await api.deleteProject(id);
-        fetchMyProjects();
-      } catch (err) {
-        alert("Failed to delete project: " + err.message);
-      }
+    const ok = await confirm({
+      title: 'Delete Project',
+      message: 'Are you sure you want to delete this project? This action cannot be undone.',
+      confirmText: 'Delete Project',
+      variant: 'danger'
+    });
+    if (!ok) return;
+
+    try {
+      await api.deleteProject(id);
+      toast.success('Project deleted successfully.');
+      fetchMyProjects();
+    } catch (err) {
+      showAlert({
+        title: 'Delete Failed',
+        message: err.message || 'Failed to delete project',
+        variant: 'error'
+      });
     }
   };
 

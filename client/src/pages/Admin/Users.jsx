@@ -10,8 +10,10 @@ import {
   RefreshCw,
   UserCheck
 } from 'lucide-react';
+import { useDialog } from '../../contexts/DialogContext';
 
 const UsersManagement = () => {
+  const { confirm, showAlert, toast } = useDialog();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -42,21 +44,38 @@ const UsersManagement = () => {
       setUpdatingId(userId);
       await api.updateUserRole(userId, newRole);
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      toast.success(`User role updated to ${newRole}`);
     } catch (err) {
-      alert(`Failed to update role: ${err.message}`);
+      showAlert({
+        title: 'Role Update Failed',
+        message: err.message || 'Failed to update user role',
+        variant: 'error'
+      });
     } finally {
       setUpdatingId(null);
     }
   };
 
   const handleDeleteUser = async (userId, userName) => {
-    if (!window.confirm(`Are you sure you want to delete profile for "${userName}"? This cannot be undone.`)) return;
+    const ok = await confirm({
+      title: 'Delete User Account',
+      message: `Are you sure you want to delete profile for "${userName}"? This cannot be undone.`,
+      confirmText: 'Delete User',
+      variant: 'danger'
+    });
+    if (!ok) return;
+
     try {
       setUpdatingId(userId);
       await api.deleteUserAdmin(userId);
       setUsers(users.filter(u => u.id !== userId));
+      toast.success(`User "${userName}" was deleted.`);
     } catch (err) {
-      alert(`Failed to delete user: ${err.message}`);
+      showAlert({
+        title: 'Delete User Failed',
+        message: err.message || 'Failed to delete user account',
+        variant: 'error'
+      });
     } finally {
       setUpdatingId(null);
     }
