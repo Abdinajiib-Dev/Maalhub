@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Briefcase, Loader2, ArrowRight, Plus, Filter, Tag } from 'lucide-react';
+import { Search, Briefcase, Loader2, ArrowRight, Plus, Filter, Tag } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { PROJECT_CATEGORIES } from '../constants/categories';
-import ProjectProgressBar from '../components/ProjectProgressBar';
 
 const Projects = () => {
   const { user, profile } = useAuth();
@@ -243,44 +242,66 @@ const Projects = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProjects.map((project) => {
-              const catObj = PROJECT_CATEGORIES.find(c => c.name.toLowerCase() === (project.industry || '').toLowerCase());
+              const catObj = PROJECT_CATEGORIES.find(c => c.name.toLowerCase() === (project.industry || '').trim().toLowerCase());
               const IconComp = catObj ? catObj.icon : Tag;
               const badgeStyle = catObj ? catObj.badgeBg : 'bg-primary/10 text-primary border-primary/20';
+              const projectImageUrl = project.project_image_url || catObj?.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
 
               return (
-                <div key={project.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow border border-gray-100 overflow-hidden flex flex-col group">
-                  <div className="p-6 flex-grow">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full border mb-3 ${badgeStyle}`}>
-                          <IconComp className="w-3.5 h-3.5" />
-                          {project.industry || 'General Business'}
-                        </span>
-                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
-                          {project.project_name}
-                        </h3>
-                        <p className="text-sm text-gray-500 mt-1">{project.business_name}</p>
-                      </div>
-                    </div>
+                <div key={project.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all border border-gray-100 overflow-hidden flex flex-col group">
+                  {/* Project Type Image */}
+                  <div className="relative h-48 w-full overflow-hidden bg-gray-100">
+                    <img 
+                      src={projectImageUrl} 
+                      alt={project.project_name || project.industry} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = catObj?.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                     
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
-                      {project.project_description || 'No description provided for this project.'}
-                    </p>
+                    <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border shadow-sm backdrop-blur-md ${badgeStyle}`}>
+                      <IconComp className="w-3.5 h-3.5" />
+                      {project.industry || 'General Business'}
+                    </span>
+                  </div>
 
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                        {project.location || 'Location unverified'}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
-                        Stage: <span className="font-medium text-gray-900 ml-1">{project.startup_stage || 'Idea'}</span>
-                      </div>
-                    </div>
+                  <div className="p-5 flex-grow flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                        {project.project_name}
+                      </h3>
 
-                    {/* Progress Bar Display */}
-                    <div className="pt-2 border-t border-gray-100">
-                      <ProjectProgressBar progress={project.progress_percentage || 0} size="sm" />
+                      {/* User Profile and Name at project title bottom */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <img 
+                          src={
+                            project.entrepreneur?.profile_photo_url || 
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(project.entrepreneur?.full_name || project.business_name || 'User')}&background=8A5F41&color=fff`
+                          } 
+                          alt={project.entrepreneur?.full_name || 'Entrepreneur'} 
+                          className="w-6 h-6 rounded-full object-cover border border-gray-200 shrink-0"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(project.entrepreneur?.full_name || project.business_name || 'User')}&background=8A5F41&color=fff`;
+                          }}
+                        />
+                        <span className="text-xs font-semibold text-gray-800 truncate">
+                          {project.entrepreneur?.full_name || 'Anonymous User'}
+                        </span>
+                        {project.business_name && project.business_name.trim() !== (project.entrepreneur?.full_name || '').trim() && (
+                          <span className="text-xs text-gray-400 truncate">
+                            • {project.business_name}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <p className="text-gray-600 text-sm line-clamp-1 leading-relaxed">
+                        {project.project_description || 'No description provided for this project.'}
+                      </p>
                     </div>
                   </div>
 

@@ -9,6 +9,7 @@ export const PROJECT_CATEGORIES = [
     badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     accentColor: 'text-emerald-600',
     gradient: 'from-emerald-600 to-green-700',
+    image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'Business',
@@ -18,6 +19,7 @@ export const PROJECT_CATEGORIES = [
     badgeBg: 'bg-blue-100 text-blue-800 border-blue-200',
     accentColor: 'text-blue-600',
     gradient: 'from-blue-600 to-indigo-700',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'Hospitality & Tourism',
@@ -27,6 +29,7 @@ export const PROJECT_CATEGORIES = [
     badgeBg: 'bg-amber-100 text-amber-800 border-amber-200',
     accentColor: 'text-amber-600',
     gradient: 'from-amber-600 to-orange-700',
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 'Education',
@@ -36,5 +39,6 @@ export const PROJECT_CATEGORIES = [
     badgeBg: 'bg-blue-100 text-blue-800 border-blue-200',
     accentColor: 'text-blue-600',
     gradient: 'from-blue-600 to-indigo-700',
+    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
   },
 ];

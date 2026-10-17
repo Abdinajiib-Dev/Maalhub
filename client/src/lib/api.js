@@ -226,12 +226,54 @@ export const api = {
     return { publicUrl, fileName: file.name };
   },
 
+  uploadIdentityDocument: async (userId, file) => {
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `identity/${userId}/${Date.now()}-${cleanFileName}`;
+
+    let bucketName = 'identity-documents';
+    
+    let { error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+    if (uploadError && (uploadError.message?.includes('not found') || uploadError.message?.includes('Bucket') || uploadError.statusCode === '404')) {
+      bucketName = 'project-documents';
+      let retry = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+      uploadError = retry.error;
+
+      if (uploadError && (uploadError.message?.includes('not found') || uploadError.message?.includes('Bucket'))) {
+        bucketName = 'profile-photos';
+        let secondRetry = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, file, { cacheControl: '3600', upsert: true });
+        uploadError = secondRetry.error;
+      }
+    }
+
+    if (uploadError) {
+      console.warn('Identity document storage upload error:', uploadError);
+      return { publicUrl: null, fileName: file.name };
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(filePath);
+
+    return { publicUrl, fileName: file.name };
+  },
+
   // Admin API Methods
   getAdminStats: () => fetchWithAuth('/admin/stats'),
   getAdminUsers: () => fetchWithAuth('/admin/users'),
   updateUserRole: (id, role) => fetchWithAuth(`/admin/users/${id}/role`, {
     method: 'PATCH',
     body: JSON.stringify({ role }),
+  }),
+  updateUserVerification: (id, status) => fetchWithAuth(`/admin/users/${id}/verification`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
   }),
   deleteUserAdmin: (id) => fetchWithAuth(`/admin/users/${id}`, { method: 'DELETE' }),
   getAdminProjects: () => fetchWithAuth('/admin/projects'),

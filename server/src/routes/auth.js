@@ -5,17 +5,52 @@ const router = express.Router();
 
 // Basic registration route (Profile creation handled here after Supabase Auth registers user)
 router.post('/register', async (req, res) => {
-  const { id, email, full_name, date_of_birth, city, country, role } = req.body;
+  const { 
+    id, 
+    email, 
+    full_name, 
+    date_of_birth, 
+    city, 
+    country, 
+    role,
+    id_document_type,
+    id_document_number,
+    id_document_url,
+    id_document_name,
+    verification_status
+  } = req.body;
   
   try {
     // 1. Create base profile
-    const { data: profile, error: profileError } = await supabase
+    let { data: profile, error: profileError } = await supabase
       .from('profiles')
       .insert([
-        { id, email, full_name, date_of_birth, city, country, role }
+        { 
+          id, 
+          email, 
+          full_name, 
+          date_of_birth, 
+          city: city || '', 
+          country: country || '', 
+          role,
+          id_document_type: id_document_type || null,
+          id_document_number: id_document_number || null,
+          id_document_url: id_document_url || null,
+          id_document_name: id_document_name || null,
+          verification_status: verification_status || 'pending'
+        }
       ])
       .select()
       .single();
+
+    // If columns do not exist in database yet (code 42703), fall back to basic profile fields
+    if (profileError && profileError.code === '42703') {
+      console.warn('⚠️ Identity verification columns not found in profiles table yet. Falling back to basic profile fields.');
+      const fallbackInsert = { id, email, full_name, date_of_birth, city: city || '', country: country || '', role };
+      const fallbackRes = await supabase.from('profiles').insert([fallbackInsert]).select().single();
+      profile = fallbackRes.data;
+      profileError = fallbackRes.error;
+    }
 
     if (profileError) throw profileError;
 
