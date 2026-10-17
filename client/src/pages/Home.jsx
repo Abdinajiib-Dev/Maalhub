@@ -128,7 +128,7 @@ const Home = () => {
               <div className="relative w-full aspect-square md:aspect-auto">
                 <div className="absolute inset-0 bg-primary/10 rounded-full blur-3xl scale-90 -z-10" />
                 <img 
-                  src="/hero.jpeg" 
+                  src="/hero.png" 
                   alt="MaalHub Platform Illustration" 
                   className="w-full h-auto object-cover rounded-2xl drop-shadow-2xl animate-fade-in"
                   style={{ maxHeight: '450px' }}
@@ -171,82 +171,6 @@ const Home = () => {
                 className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" 
               />
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Investment Sectors Section */}
-      <section className="py-20 bg-background border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">Investment Sectors</h2>
-            <p className="text-lg text-gray-600">
-              MaalHub focuses on connecting entrepreneurs with investors across four main investment sectors:
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {PROJECT_CATEGORIES.map((cat) => {
-              const IconComponent = cat.icon;
-              return (
-                <div 
-                  key={cat.id}
-                  className="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
-                >
-                  <div>
-                    <div className={`w-14 h-14 rounded-2xl ${cat.badgeBg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm`}>
-                      <IconComponent className="h-7 w-7" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mt-1 mb-3 group-hover:text-primary transition-colors">
-                      {cat.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                      {cat.description}
-                    </p>
-                  </div>
-
-                  <Link 
-                    to={`/projects?category=${encodeURIComponent(cat.name)}`}
-                    className={`inline-flex items-center font-semibold text-sm ${cat.accentColor} hover:underline`}
-                  >
-                    Browse {cat.name} Projects
-                    <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Project Features */}
-      <section className="py-20 bg-white border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Project Features</h2>
-            <p className="text-lg text-gray-600">
-              Powerful tools and capabilities designed to empower entrepreneurs and streamline investment opportunities.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => {
-              const IconComponent = feature.icon;
-              return (
-                <div 
-                  key={index}
-                  className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all group"
-                >
-                  <div className={`w-12 h-12 rounded-xl ${feature.bgColor || 'bg-amber-100'} flex items-center justify-center ${feature.iconColor || 'text-amber-700'} mb-6 group-hover:scale-110 transition-transform`}>
-                    <IconComponent className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed text-sm">
-                    {feature.description}
-                  </p>
-                </div>
-              );
-            })}
           </div>
         </div>
       </section>
@@ -313,6 +237,82 @@ const Home = () => {
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* Project Features */}
+      <section className="py-20 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Project Features</h2>
+            <p className="text-lg text-gray-600">
+              Powerful tools and capabilities designed to empower entrepreneurs and streamline investment opportunities.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <div 
+                  key={index}
+                  className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all group"
+                >
+                  <div className={`w-12 h-12 rounded-xl ${feature.bgColor || 'bg-amber-100'} flex items-center justify-center ${feature.iconColor || 'text-amber-700'} mb-6 group-hover:scale-110 transition-transform`}>
+                    <IconComponent className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <p className="text-gray-600 leading-relaxed text-sm">
+                    {feature.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Investment Sectors Section */}
+      <section className="py-20 bg-background border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">Investment Sectors</h2>
+            <p className="text-lg text-gray-600">
+              MaalHub focuses on connecting entrepreneurs with investors across four main investment sectors:
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {PROJECT_CATEGORIES.map((cat) => {
+              const IconComponent = cat.icon;
+              return (
+                <div 
+                  key={cat.id}
+                  className="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
+                >
+                  <div>
+                    <div className={`w-14 h-14 rounded-2xl ${cat.badgeBg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm`}>
+                      <IconComponent className="h-7 w-7" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mt-1 mb-3 group-hover:text-primary transition-colors">
+                      {cat.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                      {cat.description}
+                    </p>
+                  </div>
+
+                  <Link 
+                    to={`/projects?category=${encodeURIComponent(cat.name)}`}
+                    className={`inline-flex items-center font-semibold text-sm ${cat.accentColor} hover:underline`}
+                  >
+                    Browse {cat.name} Projects
+                    <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

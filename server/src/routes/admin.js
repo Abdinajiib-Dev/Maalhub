@@ -98,6 +98,36 @@ router.patch('/users/:id/role', async (req, res) => {
 });
 
 /**
+ * PATCH /api/admin/users/:id/verification
+ * Update user identity verification status (pending, verified, rejected)
+ */
+router.patch('/users/:id/verification', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const validStatuses = ['pending', 'verified', 'rejected'];
+  if (!status || !validStatuses.includes(status.toLowerCase())) {
+    return res.status(400).json({ error: 'Invalid verification status specified' });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ verification_status: status.toLowerCase() })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.status(200).json({ message: 'Verification status updated successfully', profile: data });
+  } catch (err) {
+    console.error('Error updating verification status:', err);
+    res.status(500).json({ error: err.message || 'Failed to update verification status' });
+  }
+});
+
+
+/**
  * DELETE /api/admin/users/:id
  * Delete user profile
  */

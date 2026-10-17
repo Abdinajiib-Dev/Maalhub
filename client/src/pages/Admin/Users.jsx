@@ -3,12 +3,10 @@ import { api } from '../../lib/api';
 import { 
   Users, 
   Search, 
-  Shield, 
   Trash2, 
-  CheckCircle, 
   AlertCircle,
   RefreshCw,
-  UserCheck
+  ExternalLink
 } from 'lucide-react';
 import { useDialog } from '../../contexts/DialogContext';
 
@@ -51,6 +49,18 @@ const UsersManagement = () => {
         message: err.message || 'Failed to update user role',
         variant: 'error'
       });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleVerificationChange = async (userId, newStatus) => {
+    try {
+      setUpdatingId(userId);
+      await api.updateUserVerification(userId, newStatus);
+      setUsers(users.map(u => u.id === userId ? { ...u, verification_status: newStatus } : u));
+    } catch (err) {
+      alert(`Failed to update verification status: ${err.message}`);
     } finally {
       setUpdatingId(null);
     }
@@ -165,6 +175,8 @@ const UsersManagement = () => {
                 <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   <th className="py-3.5 px-6">User</th>
                   <th className="py-3.5 px-6">Role</th>
+                  <th className="py-3.5 px-6">ID Document</th>
+                  <th className="py-3.5 px-6">Verification</th>
                   <th className="py-3.5 px-6">Location</th>
                   <th className="py-3.5 px-6">Joined Date</th>
                   <th className="py-3.5 px-6 text-right">Actions</th>
@@ -203,6 +215,58 @@ const UsersManagement = () => {
                           <option value="investor">Investor</option>
                           <option value="admin">Admin</option>
                           <option value="super_admin">Super Admin</option>
+                        </select>
+                      </td>
+
+                      <td className="py-4 px-6">
+                        {user.id_document_type ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 font-semibold text-xs text-gray-800">
+                              <span>
+                                {user.id_document_type === 'Passport' ? '🛂' : user.id_document_type === 'National ID' ? '🪪' : '📜'}
+                              </span>
+                              <span>{user.id_document_type}</span>
+                            </div>
+                            {user.id_document_number && (
+                              <p className="text-[11px] text-gray-500 font-mono">
+                                #{user.id_document_number}
+                              </p>
+                            )}
+                            {user.id_document_url ? (
+                              <a
+                                href={user.id_document_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-semibold"
+                              >
+                                <ExternalLink size={12} />
+                                View Document
+                              </a>
+                            ) : (
+                              <span className="text-[11px] text-gray-400 italic">No file attached</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">Not provided</span>
+                        )}
+                      </td>
+
+                      <td className="py-4 px-6">
+                        <select
+                          value={(user.verification_status || 'pending').toLowerCase()}
+                          disabled={updatingId === user.id}
+                          onChange={(e) => handleVerificationChange(user.id, e.target.value)}
+                          className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border focus:outline-none transition-colors cursor-pointer ${
+                            user.verification_status === 'verified'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                              : user.verification_status === 'rejected'
+                              ? 'bg-red-50 text-red-800 border-red-300'
+                              : 'bg-amber-50 text-amber-800 border-amber-300'
+                          }`}
+                        >
+                          <option value="pending">⏳ Pending</option>
+                          <option value="verified">✅ Verified</option>
+                          <option value="rejected">❌ Rejected</option>
                         </select>
                       </td>
 

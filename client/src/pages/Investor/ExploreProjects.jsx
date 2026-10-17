@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, FolderOpen, ArrowRight, Loader2, Trash2 } from 'lucide-react';
+import { Bookmark, ArrowRight, Loader2, Trash2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useDialog } from '../../contexts/DialogContext';
+import { PROJECT_CATEGORIES } from '../../constants/categories';
 
 const ExploreProjects = () => {
   const { confirm, showAlert, toast } = useDialog();
@@ -98,11 +99,18 @@ const ExploreProjects = () => {
           {savedProjects.map((item) => (
             <div key={item.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden flex flex-col relative group">
               <div className="h-40 bg-gray-100 relative overflow-hidden">
-                {item.project?.project_image_url ? (
-                  <img src={item.project.project_image_url} alt={item.project.project_name || 'Project'} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 bg-[#FAF9F6]"><FolderOpen size={40}/></div>
-                )}
+                {(() => {
+                  const catObj = PROJECT_CATEGORIES.find(c => c.name.toLowerCase() === (item.project?.industry || '').trim().toLowerCase());
+                  const imgUrl = item.project?.project_image_url || catObj?.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
+                  return (
+                    <img 
+                      src={imgUrl} 
+                      alt={item.project?.project_name || 'Project'} 
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                      loading="lazy"
+                    />
+                  );
+                })()}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 right-4">
                   <span className="inline-block px-2.5 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-semibold rounded-full mb-2">
