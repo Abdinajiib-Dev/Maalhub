@@ -89,8 +89,10 @@ const Navbar = () => {
 
   const userRole = (profile?.role || '').toLowerCase();
   const isAdmin = userRole === 'super_admin' || userRole === 'admin';
+  const isEntrepreneur = userRole === 'entrepreneur';
+  const isInvestor = userRole === 'investor';
   const isDashboard = location.pathname.includes('/entrepreneur') || location.pathname.includes('/investor') || location.pathname.includes('/admin');
-  const basePath = isAdmin ? '/admin' : profile?.role === 'entrepreneur' ? '/entrepreneur' : '/investor';
+  const basePath = isAdmin ? '/admin' : isEntrepreneur ? '/entrepreneur' : '/investor';
 
   const navLinks = isDashboard ? (
     isAdmin ? [
@@ -397,11 +399,11 @@ const Navbar = () => {
             ) : (
               <>
                 <Link 
-                  to={isAdmin ? '/admin/dashboard' : profile?.role === 'entrepreneur' ? '/entrepreneur/projects' : '/investor/projects'} 
+                  to={isAdmin ? '/admin/dashboard' : isEntrepreneur ? '/entrepreneur/projects' : '/investor/projects'} 
                   onClick={() => setIsOpen(false)}
                   className="block px-3 py-2.5 rounded-md text-base font-medium text-white bg-primary text-center hover:bg-[#7a5338] transition-colors shadow-sm"
                 >
-                  {isAdmin ? 'Admin Dashboard' : profile?.role === 'entrepreneur' ? 'My Ventures' : 'Explore Ventures'}
+                  {isAdmin ? 'Admin Dashboard' : isEntrepreneur ? 'My Ventures' : 'Explore Ventures'}
                 </Link>
                 <button onClick={() => { handleSignOut(); setIsOpen(false); }} className="block w-full text-center px-3 py-2.5 rounded-md text-base font-medium text-red-600 border border-gray-200 hover:bg-red-50 transition-colors mt-2">Sign Out</button>
               </>
