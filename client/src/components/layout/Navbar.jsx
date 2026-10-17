@@ -1,6 +1,24 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, LineChart, ChevronDown, LayoutDashboard, LogOut, Home, Kanban, Users, MessageCircle, User, Settings } from 'lucide-react';
+import { 
+  Menu, 
+  X, 
+  LineChart, 
+  ChevronDown, 
+  LayoutDashboard, 
+  LogOut, 
+  Home, 
+  Kanban, 
+  Users, 
+  MessageCircle, 
+  User, 
+  Settings,
+  Briefcase,
+  Compass,
+  Bookmark,
+  PlusCircle,
+  BarChart3
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../lib/api';
 
@@ -74,15 +92,27 @@ const Navbar = () => {
   const isDashboard = location.pathname.includes('/entrepreneur') || location.pathname.includes('/investor') || location.pathname.includes('/admin');
   const basePath = isAdmin ? '/admin' : profile?.role === 'entrepreneur' ? '/entrepreneur' : '/investor';
 
-  const navLinks = isDashboard ? [
-    { name: 'Home', path: '/', icon: Home },
-    { name: 'Dashboard', path: `${basePath}/dashboard`, icon: LayoutDashboard },
-    { name: profile?.role === 'entrepreneur' ? 'My Projects' : 'Explore Projects', path: `${basePath}/projects`, icon: Kanban },
-    { name: 'Investment Requests', path: `${basePath}/requests`, icon: Users },
-    { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
-    { name: 'Profile', path: `${basePath}/profile`, icon: User },
-    { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
-  ] : [
+  const navLinks = isDashboard ? (
+    isAdmin ? [
+      { name: 'User Management', path: `${basePath}/users`, icon: Users },
+      { name: 'Project Moderation', path: `${basePath}/projects`, icon: Kanban },
+      { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
+      { name: 'Dashboard', path: `${basePath}/dashboard`, icon: LayoutDashboard },
+    ] : profile?.role === 'entrepreneur' ? [
+      { name: 'My Ventures', path: `${basePath}/projects`, icon: Briefcase },
+      { name: 'Create Project', path: `${basePath}/create-project`, icon: PlusCircle },
+      { name: 'Investment Requests', path: `${basePath}/requests`, icon: Users },
+      { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
+      { name: 'Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
+    ] : [
+      { name: 'Explore Ventures', path: `${basePath}/projects`, icon: Compass },
+      { name: 'My Investments', path: `${basePath}/investments`, icon: LineChart },
+      { name: 'Watchlist', path: `${basePath}/saved`, icon: Bookmark },
+      { name: 'Requests', path: `${basePath}/requests`, icon: Users },
+      { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
+      { name: 'Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
+    ]
+  ) : [
     { name: 'Home', path: '/' },
     { name: 'Projects', path: '/projects' },
     { name: 'About', path: '/about' },
@@ -227,14 +257,35 @@ const Navbar = () => {
                         </p>
                       </div>
 
-                      <Link
-                        to={`${basePath}/dashboard`}
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
-                      >
-                        <LayoutDashboard className="w-4 h-4 text-primary" />
-                        <span>Dashboard</span>
-                      </Link>
+                      {isAdmin ? (
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                        >
+                          <LayoutDashboard className="w-4 h-4 text-primary" />
+                          <span>Admin Dashboard</span>
+                        </Link>
+                      ) : (
+                        <>
+                          <Link
+                            to={`${basePath}/projects`}
+                            onClick={() => setShowProfileMenu(false)}
+                            className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                          >
+                            {isEntrepreneur ? <Briefcase className="w-4 h-4 text-primary" /> : <Compass className="w-4 h-4 text-primary" />}
+                            <span>{isEntrepreneur ? 'My Ventures' : 'Explore Ventures'}</span>
+                          </Link>
+                          <Link
+                            to={`${basePath}/dashboard`}
+                            onClick={() => setShowProfileMenu(false)}
+                            className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                          >
+                            <BarChart3 className="w-4 h-4 text-primary" />
+                            <span>{isEntrepreneur ? 'Overview & Analytics' : 'Portfolio Overview'}</span>
+                          </Link>
+                        </>
+                      )}
 
                       <Link
                         to={`${basePath}/profile`}
@@ -345,23 +396,13 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                {isDashboard ? (
-                  <Link 
-                    to={profile?.role === 'entrepreneur' ? '/entrepreneur/create-project' : '/investor/projects'} 
-                    onClick={() => setIsOpen(false)}
-                    className="block px-3 py-2.5 rounded-md text-base font-medium text-white bg-primary text-center hover:bg-[#7a5338] transition-colors shadow-sm"
-                  >
-                    {profile?.role === 'entrepreneur' ? 'Create Project' : 'Browse Projects'}
-                  </Link>
-                ) : (
-                  <Link 
-                    to={profile?.role === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'} 
-                    onClick={() => setIsOpen(false)}
-                    className="block px-3 py-2.5 rounded-md text-base font-medium text-white bg-primary text-center hover:bg-[#7a5338] transition-colors shadow-sm"
-                  >
-                    Dashboard
-                  </Link>
-                )}
+                <Link 
+                  to={isAdmin ? '/admin/dashboard' : profile?.role === 'entrepreneur' ? '/entrepreneur/projects' : '/investor/projects'} 
+                  onClick={() => setIsOpen(false)}
+                  className="block px-3 py-2.5 rounded-md text-base font-medium text-white bg-primary text-center hover:bg-[#7a5338] transition-colors shadow-sm"
+                >
+                  {isAdmin ? 'Admin Dashboard' : profile?.role === 'entrepreneur' ? 'My Ventures' : 'Explore Ventures'}
+                </Link>
                 <button onClick={() => { handleSignOut(); setIsOpen(false); }} className="block w-full text-center px-3 py-2.5 rounded-md text-base font-medium text-red-600 border border-gray-200 hover:bg-red-50 transition-colors mt-2">Sign Out</button>
               </>
             )}

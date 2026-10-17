@@ -86,18 +86,18 @@ const Home = () => {
                       Submit Your Project
                       <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </Link>
-                    <Link to="/entrepreneur/dashboard" className="inline-flex justify-center items-center px-6 py-3 border-2 border-text text-text font-medium rounded-lg hover:bg-gray-100 transition-colors text-base">
-                      My Dashboard
+                    <Link to="/entrepreneur/projects" className="inline-flex justify-center items-center px-6 py-3 border-2 border-text text-text font-medium rounded-lg hover:bg-gray-100 transition-colors text-base">
+                      Manage Ventures
                     </Link>
                   </>
                 ) : user && profile?.role === 'investor' ? (
                   <>
-                    <Link to="/projects" className="inline-flex justify-center items-center px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-[#7a5338] transition-colors shadow-lg hover:shadow-xl group text-base">
-                      Explore Projects
+                    <Link to="/investor/projects" className="inline-flex justify-center items-center px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-[#7a5338] transition-colors shadow-lg hover:shadow-xl group text-base">
+                      Explore Ventures
                       <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </Link>
-                    <Link to="/investor/dashboard" className="inline-flex justify-center items-center px-6 py-3 border-2 border-text text-text font-medium rounded-lg hover:bg-gray-100 transition-colors text-base">
-                      My Dashboard
+                    <Link to="/investor/investments" className="inline-flex justify-center items-center px-6 py-3 border-2 border-text text-text font-medium rounded-lg hover:bg-gray-100 transition-colors text-base">
+                      My Portfolio
                     </Link>
                   </>
                 ) : (

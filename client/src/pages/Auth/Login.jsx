@@ -42,9 +42,9 @@ const Login = () => {
           if (userRole === 'super_admin' || userRole === 'admin') {
             navigate('/admin/dashboard');
           } else if (userRole === 'entrepreneur') {
-            navigate('/entrepreneur/dashboard');
+            navigate('/entrepreneur/projects');
           } else {
-            navigate('/investor/dashboard');
+            navigate('/investor/projects');
           }
           return;
         }
@@ -52,7 +52,7 @@ const Login = () => {
         // Ignore profile fetch error
       }
 
-      navigate('/admin/dashboard');
+      navigate('/investor/projects');
       
     } catch (err) {
       setError(err.message || 'Failed to sign in. Please check your credentials.');

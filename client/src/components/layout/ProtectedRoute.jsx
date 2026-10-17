@@ -21,10 +21,10 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 
     if (targetRole === 'super_admin' || targetRole === 'admin') {
       if (!isAdmin) {
-        return <Navigate to={userRole === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'} replace />;
+        return <Navigate to={userRole === 'entrepreneur' ? '/entrepreneur/projects' : '/investor/projects'} replace />;
       }
     } else if (userRole !== targetRole && !isAdmin) {
-      return <Navigate to={userRole === 'entrepreneur' ? '/entrepreneur/dashboard' : '/investor/dashboard'} replace />;
+      return <Navigate to={userRole === 'entrepreneur' ? '/entrepreneur/projects' : '/investor/projects'} replace />;
     }
   }
 

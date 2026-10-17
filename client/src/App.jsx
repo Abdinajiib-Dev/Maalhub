@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import DashboardLayout from './components/layout/DashboardLayout';
 import Home from './pages/Home';
@@ -25,6 +25,7 @@ import InvestmentRequests from './pages/Shared/InvestmentRequests';
 import Messages from './pages/Shared/Messages';
 import Placeholder from './pages/Shared/Placeholder';
 import ExploreProjects from './pages/Investor/ExploreProjects';
+import InvestorProjects from './pages/Investor/InvestorProjects';
 import MyInvestments from './pages/Investor/MyInvestments';
 import Profile from './pages/Shared/Profile';
 import Settings from './pages/Shared/Settings';
@@ -71,12 +72,13 @@ function App() {
               <Outlet />
             </ProtectedRoute>
           }>
-            <Route path="dashboard" element={<EntrepreneurDashboard />} />
+            <Route index element={<Navigate to="projects" replace />} />
+            <Route path="projects" element={<MyProjects />} />
             <Route path="create-project" element={<CreateProject />} />
             <Route path="edit-project/:id" element={<EditProject />} />
-            <Route path="projects" element={<MyProjects />} />
             <Route path="requests" element={<InvestmentRequests />} />
             <Route path="messages" element={<Messages />} />
+            <Route path="dashboard" element={<EntrepreneurDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
           </Route>
@@ -87,11 +89,13 @@ function App() {
               <Outlet />
             </ProtectedRoute>
           }>
-            <Route path="dashboard" element={<InvestorDashboard />} />
+            <Route index element={<Navigate to="projects" replace />} />
+            <Route path="projects" element={<InvestorProjects />} />
+            <Route path="saved" element={<ExploreProjects />} />
             <Route path="investments" element={<MyInvestments />} />
-            <Route path="projects" element={<MyInvestments />} />
             <Route path="requests" element={<InvestmentRequests />} />
             <Route path="messages" element={<Messages />} />
+            <Route path="dashboard" element={<InvestorDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
           </Route>

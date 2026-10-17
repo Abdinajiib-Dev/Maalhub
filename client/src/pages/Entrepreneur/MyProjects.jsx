@@ -1,6 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Briefcase, Loader2, Trash2, Layers, TrendingUp, CheckCircle2, Edit } from 'lucide-react';
+import { 
+  Plus, 
+  Briefcase, 
+  Loader2, 
+  Trash2, 
+  Layers, 
+  TrendingUp, 
+  CheckCircle2, 
+  Edit, 
+  Play, 
+  Pause, 
+  Sparkles,
+  ExternalLink,
+  DollarSign
+} from 'lucide-react';
 import { api } from '../../lib/api';
 import ProjectProgressBar from '../../components/ProjectProgressBar';
 import { useDialog } from '../../contexts/DialogContext';
@@ -10,6 +24,7 @@ const MyProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [statusActionId, setStatusActionId] = useState(null);
 
   // Quick progress update modal state
   const [selectedProject, setSelectedProject] = useState(null);
@@ -33,6 +48,55 @@ const MyProjects = () => {
   useEffect(() => {
     fetchMyProjects();
   }, []);
+
+  // Workspace Metrics
+  const metrics = useMemo(() => {
+    const total = projects.length;
+    const published = projects.filter(p => p.status === 'Published').length;
+    const paused = projects.filter(p => p.status === 'Paused' || p.status === 'Draft' || !p.status).length;
+    const totalFunding = projects.reduce((sum, p) => sum + (Number(p.funding_goal) || 0), 0);
+    return { total, published, paused, totalFunding };
+  }, [projects]);
+
+  // Publish / Pause Toggle Handler
+  const handleToggleStatus = async (project, targetStatus) => {
+    const isPublishing = targetStatus === 'Published';
+    const ok = await confirm({
+      title: isPublishing ? 'Publish Venture' : 'Pause Venture Listing',
+      message: isPublishing
+        ? `Are you sure you want to publish "${project.project_name}"? It will become visible on the public discovery feed for all registered investors.`
+        : `Are you sure you want to pause "${project.project_name}"? It will be temporarily hidden from investor discovery.`,
+      confirmText: isPublishing ? 'Publish Listing' : 'Pause Listing',
+      variant: isPublishing ? 'primary' : 'warning'
+    });
+
+    if (!ok) return;
+
+    try {
+      setStatusActionId(project.id);
+      const res = await api.updateProject(project.id, { status: targetStatus });
+      setProjects(prev =>
+        prev.map(p =>
+          p.id === project.id
+            ? { ...p, ...(res || {}), status: targetStatus }
+            : p
+        )
+      );
+      toast.success(
+        isPublishing
+          ? 'Project published! It is now live in the investor discovery feed.'
+          : 'Project listing paused.'
+      );
+    } catch (err) {
+      showAlert({
+        title: 'Status Update Failed',
+        message: err.message || 'Failed to update project status',
+        variant: 'error'
+      });
+    } finally {
+      setStatusActionId(null);
+    }
+  };
 
   const openProgressModal = (project) => {
     setSelectedProject(project);
@@ -104,119 +168,215 @@ const MyProjects = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Projects</h1>
-          <p className="text-gray-500 mt-1 text-sm">Manage the projects you have published to investors.</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-8">
+      {/* Workspace Header & Action */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-3">
+              <Sparkles size={13} />
+              Venture Management Workstation
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+              My Ventures & Projects
+            </h1>
+            <p className="text-gray-500 mt-2 text-sm leading-relaxed">
+              Manage your business profile, control listing visibility (publish or pause), update milestone tranches, and engage with interested investors.
+            </p>
+          </div>
+
+          <Link 
+            to="/entrepreneur/create-project" 
+            className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-secondary text-white px-5 py-3 rounded-xl font-bold transition-all shadow-sm text-sm shrink-0"
+          >
+            <Plus className="w-5 h-5" />
+            Create New Project
+          </Link>
         </div>
-        <Link 
-          to="/entrepreneur/create-project" 
-          className="w-full sm:w-auto bg-primary hover:bg-secondary text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center shadow-sm text-center"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Create Project
-        </Link>
+
+        {/* Quick Metrics Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-gray-100">
+          <div className="bg-[#FAF9F6] border border-gray-200/70 rounded-xl p-3 sm:p-4 text-center">
+            <span className="block text-xl sm:text-2xl font-black text-gray-900">{metrics.total}</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Total Ventures</span>
+          </div>
+
+          <div className="bg-[#FAF9F6] border border-gray-200/70 rounded-xl p-3 sm:p-4 text-center">
+            <span className="block text-xl sm:text-2xl font-black text-emerald-700">{metrics.published}</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Live & Published</span>
+          </div>
+
+          <div className="bg-[#FAF9F6] border border-gray-200/70 rounded-xl p-3 sm:p-4 text-center">
+            <span className="block text-xl sm:text-2xl font-black text-gray-700">{metrics.paused}</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Paused / Draft</span>
+          </div>
+
+          <div className="bg-[#FAF9F6] border border-gray-200/70 rounded-xl p-3 sm:p-4 text-center">
+            <span className="block text-xl sm:text-2xl font-black text-primary">${metrics.totalFunding.toLocaleString()}</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Target Capital</span>
+          </div>
+        </div>
       </div>
 
       {/* Content */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-gray-100">
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100">
           <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
-          <p className="text-gray-500">Loading your projects...</p>
+          <p className="text-gray-500 font-medium text-sm">Loading your ventures...</p>
         </div>
       ) : error ? (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-          <p className="text-red-700">{error}</p>
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl">
+          <p className="text-red-700 font-medium text-sm">{error}</p>
         </div>
       ) : projects.length === 0 ? (
-        <div className="bg-white p-12 rounded-xl border border-gray-100 text-center shadow-sm">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white p-12 sm:p-16 rounded-2xl border border-gray-100 text-center shadow-xs">
+          <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-100">
             <Briefcase className="h-8 w-8 text-gray-400" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No projects yet</h3>
-          <p className="text-gray-500 max-w-md mx-auto mb-6">You haven't created any projects. Start by creating a project to showcase your startup to potential investors.</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No projects created yet</h3>
+          <p className="text-gray-500 text-sm max-w-md mx-auto mb-6">
+            Get started by creating your startup project profile to showcase your business to verified investors.
+          </p>
           <Link 
             to="/entrepreneur/create-project" 
-            className="inline-flex items-center text-primary font-medium hover:underline"
+            className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-xs transition-colors"
           >
-            <Plus className="w-4 h-4 mr-1" />
+            <Plus className="w-4 h-4" />
             Create your first project
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
-            <div key={project.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden flex flex-col relative">
-              
-              {/* Status Badge */}
-              <div className="absolute top-4 right-4 z-10">
-                <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${
-                  project.status === 'Published' 
-                    ? 'bg-green-50 text-green-700 border-green-200' 
-                    : 'bg-gray-100 text-gray-700 border-gray-200'
-                }`}>
-                  {project.status || 'Draft'}
-                </span>
-              </div>
+          {projects.map((project) => {
+            const isPublished = project.status === 'Published';
+            const isUpdatingThisStatus = statusActionId === project.id;
+            const progress = Number(project.progress_percentage || 0);
 
-              <div className="p-6 flex-grow pt-10">
-                <h3 className="text-xl font-bold text-gray-900 mb-1 line-clamp-1">
-                  {project.project_name}
-                </h3>
-                <p className="text-sm text-gray-500 mb-4">{project.business_name}</p>
-                
-                <p className="text-gray-600 text-sm mb-6 line-clamp-2">
-                  {project.project_description || 'No description provided.'}
-                </p>
+            return (
+              <div 
+                key={project.id} 
+                className="bg-white rounded-2xl shadow-xs hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden flex flex-col justify-between"
+              >
+                <div className="p-6">
+                  {/* Top Bar: Category & Status */}
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-gray-100 text-gray-700 border border-gray-200 truncate">
+                      {project.industry || 'Business'}
+                    </span>
 
-                <div className="flex justify-between items-center text-sm">
-                  <div>
-                    <span className="block text-gray-500 text-xs">Funding Goal</span>
-                    <span className="font-semibold text-gray-900">${project.funding_goal?.toLocaleString() || '0'}</span>
+                    <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full border shrink-0 ${
+                      isPublished 
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                        : 'bg-gray-100 text-gray-700 border-gray-200'
+                    }`}>
+                      {project.status || 'Draft'}
+                    </span>
                   </div>
-                  <div>
-                    <span className="block text-gray-500 text-xs">Stage</span>
-                    <span className="font-semibold text-gray-900">{project.startup_stage || 'Idea'}</span>
+
+                  {/* Project Titles */}
+                  <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1">
+                    {project.project_name}
+                  </h3>
+                  <p className="text-xs font-semibold text-gray-500 mb-4 truncate">
+                    {project.business_name || 'Startup Entity'}
+                  </p>
+                  
+                  <p className="text-gray-600 text-xs leading-relaxed mb-6 line-clamp-2">
+                    {project.project_description || 'No description provided.'}
+                  </p>
+
+                  {/* Metrics */}
+                  <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50/70 rounded-xl border border-gray-100 text-xs mb-4">
+                    <div>
+                      <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Funding Goal</span>
+                      <span className="font-extrabold text-gray-900">${Number(project.funding_goal || 0).toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Startup Stage</span>
+                      <span className="font-extrabold text-gray-900">{project.startup_stage || 'Idea'}</span>
+                    </div>
+                  </div>
+
+                  {/* Development Progress Bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[10px] uppercase font-bold text-gray-500">Milestone Progress</span>
+                      <span className="font-bold text-primary">{progress}%</span>
+                    </div>
+                    <ProjectProgressBar progress={progress} size="sm" />
                   </div>
                 </div>
 
-                {/* Development Progress Bar */}
-                <div className="mt-4 pt-3 border-t border-gray-100">
-                  <ProjectProgressBar progress={project.progress_percentage || 0} size="sm" />
-                </div>
-              </div>
+                {/* Card Action Footer */}
+                <div className="bg-gray-50/80 border-t border-gray-100 p-3 px-4 flex flex-col gap-2.5">
+                  {/* Top action row */}
+                  <div className="flex items-center justify-between gap-2">
+                    <Link 
+                      to={`/projects/${project.id}`} 
+                      className="text-xs font-bold text-primary hover:text-secondary transition-colors flex items-center gap-1"
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      Phases & Pitch
+                    </Link>
 
-              <div className="bg-gray-50 border-t border-gray-100 p-3 flex justify-between items-center">
-                <Link to={`/projects/${project.id}`} className="text-sm font-bold text-primary hover:text-secondary transition-colors px-2 py-1.5 rounded-md hover:bg-primary/5 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4" />
-                  View & Manage Phases
-                </Link>
-                <div className="flex items-center space-x-1.5">
-                  <button
-                    onClick={() => openProgressModal(project)}
-                    className="text-xs font-semibold text-primary hover:text-secondary bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
-                    title="Quickly update progress"
-                  >
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    Progress
-                  </button>
-                  <Link
-                    to={`/entrepreneur/edit-project/${project.id}`}
-                    className="text-xs font-semibold text-gray-700 hover:text-primary bg-white border border-gray-200 hover:bg-gray-50 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1"
-                    title="Edit project details"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                    Edit
-                  </Link>
-                  <button onClick={() => handleDelete(project.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer" title="Delete Project">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    {/* Publish / Pause Toggle Button */}
+                    <button
+                      type="button"
+                      disabled={isUpdatingThisStatus}
+                      onClick={() => handleToggleStatus(project, isPublished ? 'Paused' : 'Published')}
+                      className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-60 border ${
+                        isPublished
+                          ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200'
+                          : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                      }`}
+                      title={isPublished ? "Pause listing" : "Publish listing to investors"}
+                    >
+                      {isUpdatingThisStatus ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : isPublished ? (
+                        <>
+                          <Pause className="w-3.5 h-3.5" />
+                          Pause
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3.5 h-3.5" />
+                          Publish
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Secondary management buttons */}
+                  <div className="flex items-center justify-end space-x-1.5 pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => openProgressModal(project)}
+                      className="text-xs font-semibold text-primary hover:text-secondary bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                      title="Quickly update progress"
+                    >
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      Progress
+                    </button>
+                    <Link
+                      to={`/entrepreneur/edit-project/${project.id}`}
+                      className="text-xs font-semibold text-gray-700 hover:text-primary bg-white border border-gray-200 hover:bg-gray-50 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                      title="Edit project details"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      Edit
+                    </Link>
+                    <button 
+                      onClick={() => handleDelete(project.id)} 
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" 
+                      title="Delete Project"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -261,17 +421,7 @@ const MyProjects = () => {
                 </div>
 
                 <div className="mb-3">
-                  <span className={`inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full ${
-                    newProgress >= 100 
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                      : newProgress >= 75 
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : newProgress >= 50 
-                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                      : newProgress >= 25 
-                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200'
-                  }`}>
+                  <span className="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-700 border border-gray-200">
                     {newProgress >= 100 ? 'Completed & Scaling' : 
                      newProgress >= 75 ? 'Market Ready / Launching' : 
                      newProgress >= 50 ? 'MVP & Operational Testing' : 

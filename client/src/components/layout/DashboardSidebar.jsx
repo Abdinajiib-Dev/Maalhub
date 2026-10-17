@@ -11,7 +11,12 @@ import {
   Settings,
   TrendingUp,
   Mail,
-  X
+  X,
+  Briefcase,
+  Compass,
+  Bookmark,
+  BarChart3,
+  PlusCircle
 } from 'lucide-react';
 
 const getCircledNumber = (num) => {
@@ -25,6 +30,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
   const userRole = (profile?.role || '').toLowerCase();
   const isAdmin = userRole === 'super_admin' || userRole === 'admin';
   const isEntrepreneur = userRole === 'entrepreneur';
+  const isInvestor = userRole === 'investor';
   const [unreadCount, setUnreadCount] = useState(0);
   
   const basePath = isAdmin ? '/admin' : isEntrepreneur ? '/entrepreneur' : '/investor';
@@ -63,24 +69,30 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
   }, [user]);
 
   const navLinks = isAdmin ? [
-    { name: 'Dashboard', path: `${basePath}/dashboard`, icon: Home },
     { name: 'User Management', path: `${basePath}/users`, icon: Users },
     { name: 'Project Moderation', path: `${basePath}/projects`, icon: Kanban },
+    { name: 'Investment Requests', path: `${basePath}/requests`, icon: Briefcase },
     { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
+    { name: 'System Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
+    { name: 'Profile', path: `${basePath}/profile`, icon: User },
+    { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
+  ] : isEntrepreneur ? [
+    { name: 'My Ventures & Projects', path: `${basePath}/projects`, icon: Briefcase },
+    { name: 'Create Project', path: `${basePath}/create-project`, icon: PlusCircle },
+    { name: 'Investment Requests', path: `${basePath}/requests`, icon: Users },
+    { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
+    { name: 'Overview & Analytics', path: `${basePath}/dashboard`, icon: BarChart3 },
     { name: 'Profile', path: `${basePath}/profile`, icon: User },
     { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
   ] : [
-    { name: 'Dashboard', path: `${basePath}/dashboard`, icon: Home },
-    { 
-      name: isEntrepreneur ? 'My Projects' : 'My Investments', 
-      path: isEntrepreneur ? `${basePath}/projects` : `${basePath}/investments`, 
-      icon: isEntrepreneur ? Kanban : TrendingUp 
-    },
+    { name: 'Explore Ventures', path: `${basePath}/projects`, icon: Compass },
+    { name: 'My Investments', path: `${basePath}/investments`, icon: TrendingUp },
+    { name: 'Saved Watchlist', path: `${basePath}/saved`, icon: Bookmark },
     { name: 'Investment Requests', path: `${basePath}/requests`, icon: Users },
     { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
+    { name: 'Portfolio Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
     { name: 'Profile', path: `${basePath}/profile`, icon: User },
     { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
-    { name: 'Contact', path: '/contact', icon: Mail },
   ];
 
   const handleLinkClick = () => {

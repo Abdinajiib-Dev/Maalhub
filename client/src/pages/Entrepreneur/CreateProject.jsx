@@ -104,7 +104,7 @@ const CreateProject = () => {
       await api.createProject(payload);
 
       toast.success('Project created successfully!');
-      navigate('/entrepreneur/dashboard');
+      navigate('/entrepreneur/projects');
     } catch (err) {
       setError(err.message);
     } finally {

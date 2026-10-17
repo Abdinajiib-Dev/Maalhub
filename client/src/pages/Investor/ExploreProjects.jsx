@@ -56,12 +56,12 @@ const ExploreProjects = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
             <Bookmark className="text-primary" size={28} />
-            Saved Projects
+            Saved Watchlist
           </h1>
-          <p className="text-gray-500 mt-1 text-sm">Manage your watchlist of interesting investment opportunities.</p>
+          <p className="text-gray-500 mt-1 text-sm">Manage your watchlist of curated investment opportunities.</p>
         </div>
         <Link 
-          to="/projects" 
+          to="/investor/projects" 
           className="w-full sm:w-auto bg-primary hover:bg-secondary text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center shadow-sm text-center"
         >
           Discover New Projects
@@ -87,7 +87,7 @@ const ExploreProjects = () => {
           <h3 className="text-xl font-bold text-gray-900 mb-2">Your watchlist is empty</h3>
           <p className="text-gray-500 max-w-md mx-auto mb-6">You haven't saved any projects yet. Browse the project feed and save projects that catch your eye to review them later.</p>
           <Link 
-            to="/projects" 
+            to="/investor/projects" 
             className="inline-flex items-center text-primary font-medium hover:underline"
           >
             Start exploring projects
