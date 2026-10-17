@@ -116,9 +116,9 @@ export const DialogProvider = ({ children }) => {
               }`}
             >
               <div className="mt-0.5 flex-shrink-0">
-                {t.type === 'success' && <CheckCircle2 size={16} className="text-emerald-600" />}
+                {t.type === 'success' && <CheckCircle2 size={16} className="text-primary" />}
                 {t.type === 'error' && <AlertCircle size={16} className="text-red-600" />}
-                {t.type === 'warning' && <AlertTriangle size={16} className="text-amber-600" />}
+                {t.type === 'warning' && <AlertTriangle size={16} className="text-stone-600" />}
                 {t.type === 'info' && <Info size={16} className="text-primary" />}
               </div>
               <p className="flex-1 leading-snug">{t.message}</p>
@@ -149,19 +149,15 @@ export const DialogProvider = ({ children }) => {
                 dialogState.variant === 'danger' || dialogState.variant === 'error'
                   ? 'bg-red-50 text-red-600 border border-red-100'
                   : dialogState.variant === 'warning'
-                  ? 'bg-amber-50 text-amber-600 border border-amber-100'
-                  : dialogState.variant === 'success'
-                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                  ? 'bg-stone-100 text-stone-700 border border-stone-200'
                   : 'bg-primary/10 text-primary border border-primary/20'
               }`}>
                 {dialogState.variant === 'danger' || dialogState.variant === 'error' ? (
                   <AlertCircle size={20} />
                 ) : dialogState.variant === 'warning' ? (
                   <AlertTriangle size={20} />
-                ) : dialogState.variant === 'success' ? (
-                  <CheckCircle2 size={20} />
                 ) : (
-                  <Info size={20} />
+                  <CheckCircle2 size={20} />
                 )}
               </div>
 

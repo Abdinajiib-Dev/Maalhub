@@ -195,8 +195,8 @@ const Dashboard = () => {
                           <p className="text-xs font-medium text-gray-500 truncate">{project.industry}</p>
                         </div>
                         <span className={`self-start shrink-0 text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full ${
-                          project.status === 'Published' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                          project.status === 'Draft' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                          project.status === 'Published' ? 'bg-primary/10 text-primary border border-primary/20' :
+                          project.status === 'Draft' ? 'bg-gray-100 text-gray-700 border border-gray-200' :
                           'bg-gray-100 text-gray-700 border border-gray-200'
                         }`}>
                           {project.status === 'Published' ? 'Active / Published' : project.status === 'Draft' ? 'Pending Review' : project.status}
@@ -274,9 +274,9 @@ const Dashboard = () => {
                         <div className="flex items-center gap-2 self-start sm:self-auto">
                           <span className="font-extrabold text-gray-900 text-sm">${Number(request.proposed_amount).toLocaleString()}</span>
                           <span className={`text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full ${
-                            request.status === 'Pending' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                            request.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                            'bg-red-100 text-red-800 border border-red-200'
+                            request.status === 'Pending' ? 'bg-gray-100 text-gray-700 border border-gray-200' :
+                            request.status === 'Accepted' ? 'bg-primary/10 text-primary border border-primary/20' :
+                            'bg-gray-100 text-gray-600 border border-gray-200'
                           }`}>
                             {request.status}
                           </span>

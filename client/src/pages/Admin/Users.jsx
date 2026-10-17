@@ -204,12 +204,7 @@ const UsersManagement = () => {
                           value={roleLower}
                           disabled={updatingId === user.id}
                           onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border focus:outline-none transition-colors cursor-pointer ${
-                            roleLower === 'super_admin' ? 'bg-amber-50 text-amber-800 border-amber-300' :
-                            roleLower === 'admin' ? 'bg-purple-50 text-purple-800 border-purple-300' :
-                            roleLower === 'investor' ? 'bg-blue-50 text-blue-800 border-blue-300' :
-                            'bg-emerald-50 text-emerald-800 border-emerald-300'
-                          }`}
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-800 hover:bg-gray-100 focus:outline-none transition-colors cursor-pointer"
                         >
                           <option value="entrepreneur">Entrepreneur</option>
                           <option value="investor">Investor</option>
@@ -256,12 +251,12 @@ const UsersManagement = () => {
                           value={(user.verification_status || 'pending').toLowerCase()}
                           disabled={updatingId === user.id}
                           onChange={(e) => handleVerificationChange(user.id, e.target.value)}
-                          className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border focus:outline-none transition-colors cursor-pointer ${
+                          className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:outline-none transition-colors cursor-pointer ${
                             user.verification_status === 'verified'
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                              ? 'bg-gray-100 text-gray-800 border-gray-200'
                               : user.verification_status === 'rejected'
-                              ? 'bg-red-50 text-red-800 border-red-300'
-                              : 'bg-amber-50 text-amber-800 border-amber-300'
+                              ? 'bg-red-50/70 text-red-700 border-red-200'
+                              : 'bg-stone-50 text-stone-700 border-stone-200'
                           }`}
                         >
                           <option value="pending">⏳ Pending</option>

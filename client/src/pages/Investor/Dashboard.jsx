@@ -97,12 +97,12 @@ const Dashboard = () => {
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight flex flex-wrap items-center gap-3">
             <span>Welcome back, {userName}!</span>
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300/80 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               {rawRole.toLowerCase() === 'investor' ? (
-                <TrendingUp size={13} className="text-emerald-700" />
+                <TrendingUp size={13} className="text-primary" />
               ) : (
-                <Briefcase size={13} className="text-emerald-700" />
+                <Briefcase size={13} className="text-primary" />
               )}
               <span className="capitalize tracking-wide font-medium">{userRoleDisplay}</span>
             </span>
@@ -253,11 +253,11 @@ const Dashboard = () => {
 
                         <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                           <span className="font-extrabold text-gray-900 text-sm">${Number(request.proposed_amount).toLocaleString()}</span>
-                          <span className={`text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full ${request.status === 'Pending' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                            request.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                              request.status === 'Withdrawn' ? 'bg-gray-100 text-gray-600 border border-gray-200' :
-                                'bg-red-100 text-red-800 border border-red-200'
-                            }`}>
+                          <span className={`text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full ${
+                            request.status === 'Pending' ? 'bg-gray-100 text-gray-700 border border-gray-200' :
+                            request.status === 'Accepted' ? 'bg-primary/10 text-primary border border-primary/20' :
+                            'bg-gray-100 text-gray-600 border border-gray-200'
+                          }`}>
                             {request.status}
                           </span>
                         </div>

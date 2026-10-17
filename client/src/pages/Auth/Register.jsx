@@ -33,8 +33,8 @@ const INVESTOR_CATEGORIES = [
     name: 'All',
     description: 'Interested in exploring and investing across all industries and sectors.',
     icon: Globe,
-    badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    accentColor: 'text-emerald-600',
+    badgeBg: 'bg-primary/10 text-primary border-primary/20',
+    accentColor: 'text-primary',
   },
   ...PROJECT_CATEGORIES,
 ];

@@ -113,8 +113,8 @@ const ProjectReviewModal = ({ project, onClose, onUpdateStatus }) => {
                 </h3>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                   isPublished 
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    ? 'bg-primary/10 text-primary border border-primary/20' 
+                    : 'bg-gray-100 text-gray-700 border border-gray-200'
                 }`}>
                   {project.status || 'Draft'}
                 </span>
@@ -136,14 +136,14 @@ const ProjectReviewModal = ({ project, onClose, onUpdateStatus }) => {
         {/* Audit Status Bar */}
         <div className={`px-5 py-2.5 border-b text-xs flex items-center justify-between ${
           allPassed 
-            ? 'bg-emerald-50/80 border-emerald-100 text-emerald-900' 
-            : 'bg-amber-50/80 border-amber-100 text-amber-900'
+            ? 'bg-primary/5 border-primary/10 text-gray-900' 
+            : 'bg-stone-50 border-stone-200 text-stone-800'
         }`}>
           <div className="flex items-center gap-2">
             {allPassed ? (
-              <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0" />
+              <CheckCircle2 size={16} className="text-primary flex-shrink-0" />
             ) : (
-              <AlertCircle size={16} className="text-amber-600 flex-shrink-0" />
+              <AlertCircle size={16} className="text-stone-500 flex-shrink-0" />
             )}
             <span className="font-semibold text-xs">
               {allPassed 
@@ -221,15 +221,15 @@ const ProjectReviewModal = ({ project, onClose, onUpdateStatus }) => {
           {(project.problem || project.solution) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {project.problem && (
-                <div className="bg-red-50/40 rounded-xl p-2.5 border border-red-100/70">
-                  <p className="text-[10px] font-bold text-red-900 mb-0.5 uppercase tracking-wider">Problem Statement</p>
-                  <p className="text-xs text-red-900/80 line-clamp-2">{project.problem}</p>
+                <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-700 mb-0.5 uppercase tracking-wider">Problem Statement</p>
+                  <p className="text-xs text-gray-600 line-clamp-2">{project.problem}</p>
                 </div>
               )}
               {project.solution && (
-                <div className="bg-emerald-50/40 rounded-xl p-2.5 border border-emerald-100/70">
-                  <p className="text-[10px] font-bold text-emerald-900 mb-0.5 uppercase tracking-wider">Solution Approach</p>
-                  <p className="text-xs text-emerald-900/80 line-clamp-2">{project.solution}</p>
+                <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-700 mb-0.5 uppercase tracking-wider">Solution Approach</p>
+                  <p className="text-xs text-gray-600 line-clamp-2">{project.solution}</p>
                 </div>
               )}
             </div>
@@ -253,14 +253,14 @@ const ProjectReviewModal = ({ project, onClose, onUpdateStatus }) => {
                   key={req.id} 
                   className={`flex items-start gap-2 p-2 rounded-lg border text-xs transition-colors ${
                     req.passed 
-                      ? 'bg-emerald-50/30 border-emerald-100' 
-                      : 'bg-amber-50/30 border-amber-100'
+                      ? 'bg-primary/5 border-primary/20' 
+                      : 'bg-gray-50 border-gray-200'
                   }`}
                 >
                   {req.passed ? (
-                    <CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 size={15} className="text-primary flex-shrink-0 mt-0.5" />
                   ) : (
-                    <XCircle size={15} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                    <XCircle size={15} className="text-gray-400 flex-shrink-0 mt-0.5" />
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-gray-900 text-[11px]">{req.label}</p>
@@ -274,10 +274,10 @@ const ProjectReviewModal = ({ project, onClose, onUpdateStatus }) => {
           {/* Admin Decision Action Banner */}
           <div className="pt-2 border-t border-gray-100">
             {isPublished ? (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-emerald-50/50 border border-emerald-200/80 rounded-xl">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
                 <div>
-                  <p className="text-xs font-bold text-emerald-900">Project is Currently Live & Public</p>
-                  <p className="text-[11px] text-emerald-700">Investors can browse and invest in this startup.</p>
+                  <p className="text-xs font-bold text-gray-900">Project is Currently Live & Public</p>
+                  <p className="text-[11px] text-gray-500">Investors can browse and invest in this startup.</p>
                 </div>
                 <button
                   type="button"

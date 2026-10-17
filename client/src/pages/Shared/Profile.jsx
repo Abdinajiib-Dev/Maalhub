@@ -78,17 +78,17 @@ const Profile = () => {
             <h2 className="text-lg sm:text-xl font-bold text-gray-900">{profile.full_name}</h2>
             <p className="text-sm text-gray-500 mb-4 flex items-center justify-center gap-1.5 font-medium">
               {isAdmin ? (
-                <ShieldCheck size={15} className="text-purple-600" />
+                <ShieldCheck size={15} className="text-primary" />
               ) : isEntrepreneur ? (
                 <Building size={15} className="text-primary" />
               ) : (
-                <TrendingUp size={15} className="text-emerald-600" />
+                <TrendingUp size={15} className="text-primary" />
               )}
               {formatRoleLabel(profile.role)}
             </p>
             
             {isAdmin ? (
-              <span className="px-3.5 py-1 text-xs font-bold uppercase tracking-wider rounded-full mb-6 bg-purple-100 text-purple-700 border border-purple-200/80 flex items-center gap-1.5 shadow-xs">
+              <span className="px-3.5 py-1 text-xs font-bold uppercase tracking-wider rounded-full mb-6 bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5 shadow-xs">
                 <ShieldCheck size={14} />
                 {userRole === 'super_admin' ? 'Super Admin' : 'Administrator'}
               </span>
@@ -97,7 +97,7 @@ const Profile = () => {
                 Startup Founder
               </span>
             ) : (
-              <span className="px-3.5 py-1 text-xs font-bold uppercase tracking-wider rounded-full mb-6 bg-green-100 text-green-700 border border-green-200 shadow-xs">
+              <span className="px-3.5 py-1 text-xs font-bold uppercase tracking-wider rounded-full mb-6 bg-primary/10 text-primary border border-primary/20 shadow-xs">
                 Verified Investor
               </span>
             )}
@@ -155,12 +155,12 @@ const Profile = () => {
           {isAdmin && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sm:p-6">
               <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
-                <ShieldCheck className="text-purple-600" size={20} />
+                <ShieldCheck className="text-primary" size={20} />
                 Administrative Privileges & Access
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 flex-shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-primary flex-shrink-0">
                     <ShieldCheck size={18} />
                   </div>
                   <div className="min-w-0">
@@ -172,19 +172,19 @@ const Profile = () => {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-700 flex-shrink-0">
                     <CheckCircle2 size={18} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-gray-500 mb-0.5">Account Status</p>
-                    <p className="text-sm text-emerald-700 font-semibold truncate flex items-center gap-1">
+                    <p className="text-sm text-gray-900 font-semibold truncate flex items-center gap-1">
                       Active Administrator
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3 sm:col-span-2">
-                  <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-700 flex-shrink-0">
                     <Briefcase size={18} />
                   </div>
                   <div className="min-w-0">
@@ -240,7 +240,7 @@ const Profile = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-primary flex-shrink-0">
                       <Briefcase size={18} />
                     </div>
                     <div className="min-w-0">
@@ -250,7 +250,7 @@ const Profile = () => {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-primary flex-shrink-0">
                       <TrendingUp size={18} />
                     </div>
                     <div className="min-w-0">
@@ -262,7 +262,7 @@ const Profile = () => {
                   </div>
 
                   <div className="flex items-start gap-3 sm:col-span-2">
-                    <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-primary flex-shrink-0">
                       <Layers size={18} />
                     </div>
                     <div className="min-w-0">
@@ -270,7 +270,7 @@ const Profile = () => {
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         {roleDetails.target_industries && roleDetails.target_industries.length > 0 ? (
                           roleDetails.target_industries.map((ind, idx) => (
-                            <span key={idx} className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <span key={idx} className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">
                               {ind}
                             </span>
                           ))

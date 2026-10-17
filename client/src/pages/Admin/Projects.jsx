@@ -134,15 +134,15 @@ const ProjectsModeration = () => {
     if (s === 'published') {
       return {
         label: 'Published',
-        bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-        dot: 'bg-emerald-500'
+        bg: 'bg-primary/10 text-primary border-primary/20',
+        dot: 'bg-primary'
       };
     }
     if (s === 'paused') {
       return {
         label: 'Paused',
-        bg: 'bg-purple-50 text-purple-700 border-purple-200/80',
-        dot: 'bg-purple-500'
+        bg: 'bg-gray-100 text-gray-700 border-gray-200',
+        dot: 'bg-gray-400'
       };
     }
     if (s === 'closed') {
@@ -155,8 +155,8 @@ const ProjectsModeration = () => {
     // Draft or pending
     return {
       label: s === 'pending' ? 'Pending' : 'Draft',
-      bg: 'bg-amber-50 text-amber-800 border-amber-200/80',
-      dot: 'bg-amber-500'
+      bg: 'bg-stone-100 text-stone-700 border-stone-200',
+      dot: 'bg-stone-400'
     };
   };
 

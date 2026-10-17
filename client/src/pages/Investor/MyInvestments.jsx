@@ -122,7 +122,7 @@ const MyInvestments = () => {
         <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs relative overflow-hidden group hover:border-gray-200 transition-all">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Total Invested</span>
-            <div className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <DollarSign size={18} />
             </div>
           </div>
@@ -152,7 +152,7 @@ const MyInvestments = () => {
         <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs relative overflow-hidden group hover:border-gray-200 transition-all">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Active Phases</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <Layers size={18} />
             </div>
           </div>
@@ -167,7 +167,7 @@ const MyInvestments = () => {
         <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs relative overflow-hidden group hover:border-gray-200 transition-all">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Progress Reports</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <FileText size={18} />
             </div>
           </div>
@@ -275,9 +275,9 @@ const MyInvestments = () => {
             const isReportsOpen = expandedReports[inv.id] !== false; // default open if not toggled off
 
             const statusColors = {
-              Accepted: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-              Pending: 'bg-amber-50 text-amber-700 border-amber-200',
-              Rejected: 'bg-red-50 text-red-700 border-red-200',
+              Accepted: 'bg-primary/10 text-primary border-primary/20',
+              Pending: 'bg-gray-100 text-gray-700 border-gray-200',
+              Rejected: 'bg-red-50/70 text-red-700 border-red-200',
               Withdrawn: 'bg-gray-100 text-gray-600 border-gray-200'
             }[inv.status] || 'bg-gray-100 text-gray-600 border-gray-200';
 
