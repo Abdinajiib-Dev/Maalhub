@@ -105,14 +105,12 @@ const Navbar = () => {
       { name: 'Create Project', path: `${basePath}/create-project`, icon: PlusCircle },
       { name: 'Investment Requests', path: `${basePath}/requests`, icon: Users },
       { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
-      { name: 'Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
     ] : [
       { name: 'Explore Ventures', path: `${basePath}/projects`, icon: Compass },
       { name: 'My Investments', path: `${basePath}/investments`, icon: LineChart },
       { name: 'Watchlist', path: `${basePath}/saved`, icon: Bookmark },
       { name: 'Requests', path: `${basePath}/requests`, icon: Users },
       { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
-      { name: 'Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
     ]
   ) : [
     { name: 'Home', path: '/' },
@@ -269,24 +267,14 @@ const Navbar = () => {
                           <span>Admin Dashboard</span>
                         </Link>
                       ) : (
-                        <>
-                          <Link
-                            to={`${basePath}/projects`}
-                            onClick={() => setShowProfileMenu(false)}
-                            className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
-                          >
-                            {isEntrepreneur ? <Briefcase className="w-4 h-4 text-primary" /> : <Compass className="w-4 h-4 text-primary" />}
-                            <span>{isEntrepreneur ? 'My Ventures' : 'Explore Ventures'}</span>
-                          </Link>
-                          <Link
-                            to={`${basePath}/dashboard`}
-                            onClick={() => setShowProfileMenu(false)}
-                            className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
-                          >
-                            <BarChart3 className="w-4 h-4 text-primary" />
-                            <span>{isEntrepreneur ? 'Overview & Analytics' : 'Portfolio Overview'}</span>
-                          </Link>
-                        </>
+                        <Link
+                          to={`${basePath}/projects`}
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center space-x-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors font-medium"
+                        >
+                          {isEntrepreneur ? <Briefcase className="w-4 h-4 text-primary" /> : <Compass className="w-4 h-4 text-primary" />}
+                          <span>{isEntrepreneur ? 'My Ventures' : 'Explore Ventures'}</span>
+                        </Link>
                       )}
 
                       <Link

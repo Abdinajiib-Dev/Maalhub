@@ -81,7 +81,6 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
     { name: 'Create Project', path: `${basePath}/create-project`, icon: PlusCircle },
     { name: 'Investment Requests', path: `${basePath}/requests`, icon: Users },
     { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
-    { name: 'Overview & Analytics', path: `${basePath}/dashboard`, icon: BarChart3 },
     { name: 'Profile', path: `${basePath}/profile`, icon: User },
     { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
   ] : [
@@ -90,7 +89,6 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
     { name: 'Saved Watchlist', path: `${basePath}/saved`, icon: Bookmark },
     { name: 'Investment Requests', path: `${basePath}/requests`, icon: Users },
     { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
-    { name: 'Portfolio Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
     { name: 'Profile', path: `${basePath}/profile`, icon: User },
     { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
   ];

@@ -80,7 +80,7 @@ function App() {
             <Route path="edit-project/:id" element={<EditProject />} />
             <Route path="requests" element={<InvestmentRequests />} />
             <Route path="messages" element={<Messages />} />
-            <Route path="dashboard" element={<EntrepreneurDashboard />} />
+            <Route path="dashboard" element={<Navigate to="../projects" replace />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
           </Route>
@@ -97,7 +97,7 @@ function App() {
             <Route path="investments" element={<MyInvestments />} />
             <Route path="requests" element={<InvestmentRequests />} />
             <Route path="messages" element={<Messages />} />
-            <Route path="dashboard" element={<InvestorDashboard />} />
+            <Route path="dashboard" element={<Navigate to="../projects" replace />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
           </Route>
