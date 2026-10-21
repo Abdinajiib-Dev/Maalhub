@@ -14,6 +14,7 @@ import {
   MapPin,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   MessageCircle,
   AlertCircle,
   Loader2,
@@ -42,6 +43,16 @@ const MyInvestments = () => {
 
   // Expanded report cards mapping: { [projectId]: boolean }
   const [expandedReports, setExpandedReports] = useState({});
+
+  // Collapsed / Expanded investment cards mapping: { [investmentId]: boolean }
+  const [expandedInvestments, setExpandedInvestments] = useState({});
+
+  const toggleInvestment = (id) => {
+    setExpandedInvestments(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   const toggleReports = (id) => {
     setExpandedReports(prev => ({
@@ -82,6 +93,20 @@ const MyInvestments = () => {
     return true;
   });
 
+  const areAllExpanded = filteredInvestments.length > 0 && filteredInvestments.every(inv => expandedInvestments[inv.id]);
+
+  const toggleAllInvestments = () => {
+    if (areAllExpanded) {
+      setExpandedInvestments({});
+    } else {
+      const allTrue = {};
+      filteredInvestments.forEach(inv => {
+        allTrue[inv.id] = true;
+      });
+      setExpandedInvestments(allTrue);
+    }
+  };
+
   // Calculations for summary metric cards
   const acceptedInvestments = investments.filter(inv => inv.status === 'Accepted');
   const totalCapitalCommitted = acceptedInvestments.reduce((sum, inv) => sum + Number(inv.proposed_amount || 0), 0);
@@ -109,7 +134,7 @@ const MyInvestments = () => {
         </div>
 
         <Link
-          to="/projects"
+          to="/investor/projects"
           className="w-full sm:w-auto bg-primary hover:bg-secondary text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm flex items-center justify-center gap-2 text-sm text-center"
         >
           Discover New Projects
@@ -215,15 +240,29 @@ const MyInvestments = () => {
           </button>
         </div>
 
-        <div className="relative min-w-[240px]">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by venture or industry..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:bg-white outline-none"
-          />
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
+          {filteredInvestments.length > 0 && (
+            <button
+              type="button"
+              onClick={toggleAllInvestments}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer"
+              title={areAllExpanded ? "Collapse all investment deals" : "Expand all investment deals"}
+            >
+              <ChevronDown size={14} className={`transition-transform duration-200 ${areAllExpanded ? 'rotate-180' : ''}`} />
+              <span>{areAllExpanded ? 'Collapse All' : 'Expand All'}</span>
+            </button>
+          )}
+
+          <div className="relative min-w-[220px] flex-1 sm:flex-initial">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by venture or industry..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:ring-2 focus:ring-primary focus:bg-white outline-none"
+            />
+          </div>
         </div>
       </div>
 
@@ -257,7 +296,7 @@ const MyInvestments = () => {
               : "No investments match the selected filter criteria."}
           </p>
           <Link
-            to="/projects"
+            to="/investor/projects"
             className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-sm"
           >
             Explore Available Projects <ArrowRight size={16} />
@@ -273,6 +312,7 @@ const MyInvestments = () => {
             const reports = Array.isArray(inv.reports) ? inv.reports : [];
             const hasReports = reports.length > 0;
             const isReportsOpen = expandedReports[inv.id] !== false; // default open if not toggled off
+            const isExpanded = !!expandedInvestments[inv.id];
 
             const statusColors = {
               Accepted: 'bg-primary/10 text-primary border-primary/20',
@@ -286,8 +326,22 @@ const MyInvestments = () => {
                 key={inv.id} 
                 className="bg-white rounded-2xl border border-gray-200 shadow-xs hover:border-gray-300 transition-all overflow-hidden"
               >
-                {/* 1. Venture Header & Quick Details */}
-                <div className="p-6 bg-gradient-to-r from-gray-50/70 via-white to-white border-b border-gray-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5">
+                {/* 1. Venture Header & Quick Details (Clickable to Expand / Collapse) */}
+                <div 
+                  onClick={() => toggleInvestment(inv.id)}
+                  className={`p-6 bg-gradient-to-r from-gray-50/70 via-white to-white flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 cursor-pointer select-none transition-colors hover:bg-gray-50/60 ${
+                    isExpanded ? 'border-b border-gray-100' : ''
+                  }`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleInvestment(inv.id);
+                    }
+                  }}
+                  aria-expanded={isExpanded}
+                >
                   <div className="flex items-start sm:items-center gap-4">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0 shadow-xs">
                       {project.project_image_url ? (
@@ -313,6 +367,12 @@ const MyInvestments = () => {
                         <span className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${statusColors}`}>
                           {inv.status === 'Accepted' ? 'Active Investment' : `Offer: ${inv.status}`}
                         </span>
+                        {!isExpanded && project.progress_percentage !== undefined && (
+                          <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full hidden sm:inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            {project.progress_percentage || 0}% progress
+                          </span>
+                        )}
                       </div>
 
                       <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
@@ -332,8 +392,8 @@ const MyInvestments = () => {
                     </div>
                   </div>
 
-                  {/* Financial & Entrepreneur Pill */}
-                  <div className="flex flex-wrap items-center gap-4 sm:gap-6 self-stretch lg:self-auto justify-between lg:justify-end pt-3 lg:pt-0 border-t lg:border-t-0 border-gray-100">
+                  {/* Financial, Entrepreneur Pill, and Action Buttons */}
+                  <div className="flex flex-wrap items-center gap-4 sm:gap-5 self-stretch lg:self-auto justify-between lg:justify-end pt-3 lg:pt-0 border-t lg:border-t-0 border-gray-100">
                     <div>
                       <span className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">
                         My Committed Capital
@@ -360,18 +420,41 @@ const MyInvestments = () => {
                       </div>
                     </div>
 
-                    <Link 
-                      to={`/projects/${project.id}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-secondary px-3 py-2 bg-primary/5 hover:bg-primary/10 rounded-xl transition-colors whitespace-nowrap"
-                    >
-                      <Eye size={14} />
-                      View Details
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link 
+                        to={`/projects/${project.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-primary px-3 py-2 bg-gray-100/80 hover:bg-gray-100 rounded-xl transition-colors whitespace-nowrap border border-gray-200/60"
+                      >
+                        <Eye size={14} />
+                        View Details
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleInvestment(inv.id);
+                        }}
+                        className={`inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl transition-all border cursor-pointer ${
+                          isExpanded
+                            ? 'bg-primary text-white border-primary shadow-xs'
+                            : 'bg-white hover:bg-gray-100 text-gray-800 border-gray-200 shadow-2xs'
+                        }`}
+                        title={isExpanded ? "Collapse investment details" : "Open investment details"}
+                      >
+                        <span>{isExpanded ? 'Collapse' : 'Open Details'}</span>
+                        <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* 2. THE THREE PILLARS CONTAINER */}
-                <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Collapsible Pillars and Reports */}
+                {isExpanded && (
+                  <div className="animate-in fade-in duration-200">
+                    {/* 2. THE THREE PILLARS CONTAINER */}
+                    <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                   {/* PILLAR 1: OVERALL PROJECT PROGRESS (5 cols) */}
                   <div className="lg:col-span-5 bg-gray-50/80 rounded-2xl p-5 border border-gray-100 flex flex-col justify-between">
@@ -643,6 +726,24 @@ const MyInvestments = () => {
                     )}
                   </div>
                 </div>
+
+                    {/* Bottom Collapse Bar */}
+                    <div className="bg-gray-50/70 border-t border-gray-100 px-6 py-2.5 flex items-center justify-between">
+                      <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5">
+                        <CheckCircle size={13} className="text-green-600" />
+                        Viewing detailed progress & reports
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleInvestment(inv.id)}
+                        className="text-xs font-bold text-gray-600 hover:text-primary flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <span>Collapse Investment</span>
+                        <ChevronUp size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
               </div>
             );

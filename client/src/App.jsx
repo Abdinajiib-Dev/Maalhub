@@ -108,6 +108,7 @@ function App() {
               <Outlet />
             </ProtectedRoute>
           }>
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="projects" element={<AdminProjects />} />
