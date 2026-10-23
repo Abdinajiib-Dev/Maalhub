@@ -261,14 +261,8 @@ const Register = () => {
 
       // Check policies
       let policyValid = true;
-      if (!agreedTerms && !agreedPrivacy) {
-        setPolicyValidationError('Please accept both the Terms & Conditions and Privacy Policy to continue.');
-        policyValid = false;
-      } else if (!agreedTerms) {
-        setPolicyValidationError('Please accept the Terms & Conditions to continue.');
-        policyValid = false;
-      } else if (!agreedPrivacy) {
-        setPolicyValidationError('Please accept the Privacy Policy to continue.');
+      if (!agreedTerms || !agreedPrivacy) {
+        setPolicyValidationError('Please agree to the Terms & Conditions and Privacy Policy to continue.');
         policyValid = false;
       } else {
         setPolicyValidationError('');
@@ -494,140 +488,53 @@ const Register = () => {
                   </div>
                 </div>
 
-                {/* Terms & Privacy Policy section */}
-                <div className="pt-6 border-t border-gray-200 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-lg font-bold text-gray-900">Terms & Privacy Policy</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Please review and accept our policies to continue.
-                      </p>
-                    </div>
-                    <span className="hidden sm:inline-block text-xs font-semibold px-2.5 py-1 bg-primary/10 text-primary rounded-full capitalize">
-                      {role}
+                {/* Terms & Privacy Policy Check */}
+                <div className="pt-2">
+                  <label className="flex items-start sm:items-center space-x-2.5 cursor-pointer text-sm text-gray-700 select-none">
+                    <input
+                      type="checkbox"
+                      checked={agreedTerms && agreedPrivacy}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setAgreedTerms(checked);
+                        setAgreedPrivacy(checked);
+                        if (checked) {
+                          setPolicyValidationError('');
+                        } else {
+                          setPolicyValidationError('Please agree to the Terms & Conditions and Privacy Policy to continue.');
+                        }
+                      }}
+                      className="mt-0.5 sm:mt-0 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary shrink-0"
+                    />
+                    <span>
+                      I agree to the{' '}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowTermsModal(true);
+                        }}
+                        className="text-primary font-semibold hover:underline"
+                      >
+                        Terms & Conditions
+                      </button>{' '}
+                      and{' '}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowPrivacyModal(true);
+                        }}
+                        className="text-primary font-semibold hover:underline"
+                      >
+                        Privacy Policy
+                      </button>
+                      <span className="text-red-500 font-bold ml-1">*</span>
                     </span>
-                  </div>
-
-                  {/* Tab switchers */}
-                  <div className="flex border-b border-gray-200 space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => setActivePolicyTab('terms')}
-                      className={`flex items-center space-x-2 py-2.5 px-4 text-sm font-medium border-b-2 transition-all ${
-                        activePolicyTab === 'terms'
-                          ? 'border-primary text-primary bg-primary/5 rounded-t-lg'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
-                      }`}
-                    >
-                      <FileText className="w-4 h-4" />
-                      <span>Terms & Conditions</span>
-                      {agreedTerms && <CheckCircle className="w-3.5 h-3.5 text-green-600 ml-1" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActivePolicyTab('privacy')}
-                      className={`flex items-center space-x-2 py-2.5 px-4 text-sm font-medium border-b-2 transition-all ${
-                        activePolicyTab === 'privacy'
-                          ? 'border-primary text-primary bg-primary/5 rounded-t-lg'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
-                      }`}
-                    >
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Privacy Policy</span>
-                      {agreedPrivacy && <CheckCircle className="w-3.5 h-3.5 text-green-600 ml-1" />}
-                    </button>
-                  </div>
-
-                  {/* Scrollable Policy Viewer */}
-                  <div className="border border-gray-200 rounded-xl bg-gray-50/50 p-4 max-h-52 overflow-y-auto shadow-inner text-sm leading-relaxed">
-                    {activePolicyTab === 'terms' ? (
-                      <div>
-                        <div className="flex items-center justify-between pb-2 mb-3 border-b border-gray-200 text-xs text-gray-500">
-                          <span className="font-semibold text-gray-800">MaalHub Platform Terms & Conditions</span>
-                          <span>Scroll down to read</span>
-                        </div>
-                        <TermsContent />
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="flex items-center justify-between pb-2 mb-3 border-b border-gray-200 text-xs text-gray-500">
-                          <span className="font-semibold text-gray-800">MaalHub Platform Privacy Policy</span>
-                          <span>Scroll down to read</span>
-                        </div>
-                        <PrivacyContent />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Explicit Acceptance Checkboxes */}
-                  <div className="space-y-3 pt-1">
-                    <label className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={agreedTerms}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setAgreedTerms(checked);
-                          if (checked && agreedPrivacy) {
-                            setPolicyValidationError('');
-                          } else if (!checked && !agreedPrivacy) {
-                            setPolicyValidationError('Please accept both the Terms & Conditions and Privacy Policy to continue.');
-                          } else if (!checked) {
-                            setPolicyValidationError('Please accept the Terms & Conditions to continue.');
-                          } else if (!agreedPrivacy) {
-                            setPolicyValidationError('Please accept the Privacy Policy to continue.');
-                          }
-                        }}
-                        className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <span className="text-sm text-gray-700">
-                        I have read, understood, and accept the{' '}
-                        <button
-                          type="button"
-                          onClick={() => setActivePolicyTab('terms')}
-                          className="text-primary font-semibold hover:underline"
-                        >
-                          Terms & Conditions
-                        </button>
-                        . <span className="text-red-500 font-bold">*</span>
-                      </span>
-                    </label>
-
-                    <label className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={agreedPrivacy}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setAgreedPrivacy(checked);
-                          if (checked && agreedTerms) {
-                            setPolicyValidationError('');
-                          } else if (!checked && !agreedTerms) {
-                            setPolicyValidationError('Please accept both the Terms & Conditions and Privacy Policy to continue.');
-                          } else if (!checked) {
-                            setPolicyValidationError('Please accept the Privacy Policy to continue.');
-                          } else if (!agreedTerms) {
-                            setPolicyValidationError('Please accept the Terms & Conditions to continue.');
-                          }
-                        }}
-                        className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <span className="text-sm text-gray-700">
-                        I have read, understood, and accept the{' '}
-                        <button
-                          type="button"
-                          onClick={() => setActivePolicyTab('privacy')}
-                          className="text-primary font-semibold hover:underline"
-                        >
-                          Privacy Policy
-                        </button>
-                        . <span className="text-red-500 font-bold">*</span>
-                      </span>
-                    </label>
-                  </div>
+                  </label>
 
                   {policyValidationError && (
-                    <div className="flex items-center space-x-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                    <div className="flex items-center space-x-2 text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200 mt-2">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{policyValidationError}</span>
                     </div>
@@ -1037,58 +944,80 @@ const Register = () => {
         )}
       </div>
 
-      {/* Read-Only Modal for Terms */}
+      {/* Official Legal Paper Modal for Terms & Conditions */}
       {showTermsModal && (
         <div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 sm:p-6"
           onClick={() => setShowTermsModal(false)}
         >
           <div 
-            className="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[80vh] overflow-y-auto"
+            className="bg-white rounded-2xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl border border-gray-200 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Terms & Conditions</h2>
+            {/* Paper Header / Letterhead */}
+            <div className="bg-gradient-to-r from-amber-50/70 via-white to-amber-50/70 px-6 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Terms & Conditions</h2>
+                  <p className="text-xs text-gray-500">MaalHub Platform Agreement • Effective October 2026</p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowTermsModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-1"
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                title="Close"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="mb-6">
+
+            {/* Document Paper Body */}
+            <div className="p-6 sm:p-8 overflow-y-auto space-y-4 bg-[#fdfdfc] text-gray-700 leading-relaxed rounded-b-2xl">
               <TermsContent />
             </div>
-            <button type="button" onClick={() => setShowTermsModal(false)} className="btn-primary w-full">Close</button>
           </div>
         </div>
       )}
 
-      {/* Read-Only Modal for Privacy */}
+      {/* Official Legal Paper Modal for Privacy Policy */}
       {showPrivacyModal && (
         <div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 sm:p-6"
           onClick={() => setShowPrivacyModal(false)}
         >
           <div 
-            className="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[80vh] overflow-y-auto"
+            className="bg-white rounded-2xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl border border-gray-200 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Privacy Policy</h2>
+            {/* Paper Header / Letterhead */}
+            <div className="bg-gradient-to-r from-amber-50/70 via-white to-amber-50/70 px-6 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Privacy Policy</h2>
+                  <p className="text-xs text-gray-500">MaalHub Security & Data Privacy • Effective October 2026</p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowPrivacyModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-1"
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                title="Close"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="mb-6">
+
+            {/* Document Paper Body */}
+            <div className="p-6 sm:p-8 overflow-y-auto space-y-4 bg-[#fdfdfc] text-gray-700 leading-relaxed rounded-b-2xl">
               <PrivacyContent />
             </div>
-            <button type="button" onClick={() => setShowPrivacyModal(false)} className="btn-primary w-full">Close</button>
           </div>
         </div>
       )}
