@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../lib/api';
+import ThemeToggle from '../ThemeToggle';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -159,7 +160,8 @@ const Navbar = () => {
           )}
 
           {/* Right: Actions */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-3">
+            <ThemeToggle />
             {!user ? (
               <>
                 <Link to="/login" className="text-text hover:text-primary font-medium text-sm px-4 py-2 border border-gray-300 rounded-md hover:border-primary transition-colors">
@@ -170,7 +172,7 @@ const Navbar = () => {
                 </Link>
               </>
             ) : (
-              <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-4">
                 {/* Notification Bell */}
                 <div className="relative" ref={notificationRef}>
                   <button 
@@ -313,8 +315,9 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="-mr-2 flex items-center md:hidden">
+          {/* Mobile menu button & Theme toggle */}
+          <div className="-mr-2 flex items-center space-x-1 md:hidden">
+            <ThemeToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
@@ -379,6 +382,7 @@ const Navbar = () => {
             </Link>
           )})}
           <div className="pt-4 mt-2 border-t border-gray-100 flex flex-col space-y-3">
+            <ThemeToggle variant="switch" />
             {!user ? (
               <>
                 <Link to="/login" onClick={() => setIsOpen(false)} className="block px-3 py-2.5 rounded-md text-base font-medium text-text border border-gray-200 text-center hover:bg-gray-50 transition-colors">Log In</Link>

@@ -13,7 +13,8 @@ import {
   CheckCircle2, 
   Sparkles,
   SlidersHorizontal,
-  BookmarkCheck
+  BookmarkCheck,
+  Tag
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -481,124 +482,141 @@ const InvestorProjects = () => {
             const isSavingThis = savingId === project.id;
             const progress = Number(project.progress_percentage || 0);
 
+            const IconComp = catObj ? catObj.icon : Tag;
+            const badgeStyle = catObj ? catObj.badgeBg : 'bg-primary/10 text-primary border-primary/20';
+
+            const entrepreneurName = project.entrepreneur?.full_name || 'Anonymous User';
+            const entrepreneurAvatar = project.entrepreneur?.profile_photo_url || 
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(entrepreneurName || project.business_name || 'User')}&background=8A5F41&color=fff`;
+
             return (
               <div 
                 key={project.id} 
-                className="bg-white rounded-2xl shadow-xs hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden flex flex-col group"
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-slate-800 overflow-hidden flex flex-col justify-between group"
               >
-                {/* Card Image Banner */}
-                <div className="h-48 bg-gray-100 relative overflow-hidden">
-                  <img
-                    src={imgUrl}
-                    alt={project.project_name || 'Project'}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div>
+                  {/* Card Image Banner (Matching Image 2) */}
+                  <div className="h-48 bg-gray-100 dark:bg-slate-800 relative overflow-hidden">
+                    <img
+                      src={imgUrl}
+                      alt={project.project_name || 'Project'}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = catObj?.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
-                  {/* Sector Badge (Top Left) */}
-                  <div className="absolute top-3 left-3">
-                    <span className="px-2.5 py-1 bg-black/40 backdrop-blur-md text-white text-[11px] font-bold rounded-lg border border-white/20">
+                    {/* Sector Badge (Top Left) */}
+                    <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border shadow-sm backdrop-blur-md bg-white/90 text-primary border-primary/20 dark:bg-slate-900/90 dark:text-amber-200 dark:border-amber-800/40`}>
+                      <IconComp className="w-3.5 h-3.5" />
                       {project.industry || 'General Business'}
                     </span>
+
+                    {/* Bookmark Button (Top Right) */}
+                    <div className="absolute top-3 right-3">
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleSave(project.id, e)}
+                        disabled={isSavingThis}
+                        aria-label={isSaved ? "Remove from watchlist" : "Save to watchlist"}
+                        className={`p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer ${
+                          isSaved
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 text-gray-700 dark:text-slate-200 hover:text-primary shadow-xs'
+                        }`}
+                        title={isSaved ? "Remove from Watchlist" : "Save to Watchlist"}
+                      >
+                        {isSavingThis ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : isSaved ? (
+                          <BookmarkCheck className="w-4 h-4" />
+                        ) : (
+                          <Bookmark className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Bookmark Button (Top Right) */}
-                  <div className="absolute top-3 right-3">
-                    <button
-                      type="button"
-                      onClick={(e) => handleToggleSave(project.id, e)}
-                      disabled={isSavingThis}
-                      aria-label={isSaved ? "Remove from watchlist" : "Save to watchlist"}
-                      className={`p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer ${
-                        isSaved
-                          ? 'bg-primary text-white shadow-sm'
-                          : 'bg-white/80 hover:bg-white text-gray-700 hover:text-primary shadow-xs'
-                      }`}
-                      title={isSaved ? "Remove from Watchlist" : "Save to Watchlist"}
-                    >
-                      {isSavingThis ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : isSaved ? (
-                        <BookmarkCheck className="w-4 h-4" />
-                      ) : (
-                        <Bookmark className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Bottom Image Overlay: Title & Entity */}
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <span className="text-[11px] font-semibold text-white/80 block truncate">
-                      {project.business_name || 'Startup Venture'}
-                    </span>
-                    <h3 className="text-base font-bold text-white line-clamp-1 leading-snug">
+                  {/* Card Body (Matching Image 2) */}
+                  <div className="p-5">
+                    {/* Project Title */}
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-1 mb-2">
                       {project.project_name}
                     </h3>
-                  </div>
-                </div>
 
-                {/* Card Body */}
-                <div className="p-5 flex-grow flex flex-col justify-between">
-                  <div>
-                    {/* Stage & Meta */}
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 border border-gray-200">
-                        {project.startup_stage || 'Growth'}
+                    {/* User Profile and Business Name */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <img 
+                        src={entrepreneurAvatar}
+                        alt={entrepreneurName} 
+                        className="w-6 h-6 rounded-full object-cover border border-gray-200 dark:border-slate-700 shrink-0"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(entrepreneurName || project.business_name || 'User')}&background=8A5F41&color=fff`;
+                        }}
+                      />
+                      <span className="text-xs font-semibold text-gray-800 dark:text-slate-200 truncate">
+                        {entrepreneurName}
                       </span>
-                      {project.phases && Array.isArray(project.phases) && project.phases.length > 0 && (
-                        <span className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
-                          <Layers size={12} className="text-primary" />
-                          {project.phases.length} {project.phases.length === 1 ? 'Phase' : 'Phases'}
+                      {project.business_name && project.business_name.trim() !== entrepreneurName.trim() && (
+                        <span className="text-xs text-gray-400 dark:text-slate-400 truncate">
+                          • {project.business_name}
                         </span>
                       )}
                     </div>
 
                     {/* Description */}
-                    <p className="text-gray-600 text-xs leading-relaxed line-clamp-2 mb-4">
+                    <p className="text-gray-600 dark:text-slate-300 text-sm line-clamp-2 leading-relaxed mb-4">
                       {project.project_description || 'No detailed description provided for this venture.'}
                     </p>
-                  </div>
 
-                  {/* Financial & Milestone Metrics */}
-                  <div className="space-y-3 pt-3 border-t border-gray-100">
-                    <div className="flex justify-between items-end">
+                    {/* Financial & Milestone Metrics */}
+                    <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50/70 dark:bg-slate-800/60 rounded-xl border border-gray-100 dark:border-slate-700 text-xs mb-3">
                       <div>
-                        <span className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                        <span className="block text-[10px] uppercase font-bold text-gray-400 dark:text-slate-400 tracking-wider">
                           Funding Goal
                         </span>
-                        <span className="text-base font-black text-gray-900">
+                        <span className="font-extrabold text-gray-900 dark:text-white">
                           ${Number(project.funding_goal || 0).toLocaleString()}
                         </span>
                       </div>
-                      <div className="text-right">
-                        <span className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                          Development
+                      <div>
+                        <span className="block text-[10px] uppercase font-bold text-gray-400 dark:text-slate-400 tracking-wider">
+                          Startup Stage
                         </span>
-                        <span className="text-xs font-bold text-primary">
-                          {progress}%
+                        <span className="font-extrabold text-gray-900 dark:text-white">
+                          {project.startup_stage || 'Growth'}
                         </span>
                       </div>
                     </div>
 
-                    {/* Progress Bar */}
-                    <ProjectProgressBar progress={progress} size="sm" />
+                    {/* Milestone Progress Bar */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[10px] uppercase font-bold text-gray-500 dark:text-slate-400">Development</span>
+                        <span className="font-bold text-primary dark:text-primary-light">{progress}%</span>
+                      </div>
+                      <ProjectProgressBar progress={progress} size="sm" />
+                    </div>
                   </div>
                 </div>
 
                 {/* Card Action Footer */}
-                <div className="bg-gray-50/80 border-t border-gray-100 p-3 px-4 flex items-center justify-between gap-2">
+                <div className="bg-gray-50/80 dark:bg-slate-800/80 border-t border-gray-100 dark:border-slate-700/80 p-3 px-4 flex items-center justify-between gap-2">
                   <Link
                     to={`/projects/${project.id}`}
-                    className="text-xs font-bold text-primary hover:text-secondary flex items-center gap-1 transition-colors"
+                    className="text-xs font-bold text-primary hover:text-secondary dark:text-primary-light flex items-center gap-1 transition-colors"
                   >
-                    View Details & Pitch
+                    View Details
                     <ArrowRight size={13} />
                   </Link>
 
                   <Link
                     to={`/projects/${project.id}?invest=true`}
-                    className="bg-primary hover:bg-secondary text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-xs"
+                    className="bg-primary hover:bg-secondary text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition-colors shadow-xs"
                   >
                     Invest Now
                   </Link>

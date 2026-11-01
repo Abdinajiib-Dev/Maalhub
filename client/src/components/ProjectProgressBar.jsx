@@ -14,14 +14,14 @@ const ProjectProgressBar = ({ progress = 0, showLabel = true, size = 'md', class
   return (
     <div className={`w-full ${className}`}>
       {showLabel && (
-        <div className="flex justify-between items-center mb-1.5 text-xs font-semibold text-gray-700">
-          <span>Project Progress: <strong className="text-primary">{percentage}%</strong></span>
-          <span className="text-gray-500 font-medium">
+        <div className="flex justify-between items-center mb-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300">
+          <span>Project Progress: <strong className="text-primary dark:text-primary-light">{percentage}%</strong></span>
+          <span className="text-gray-500 dark:text-slate-400 font-medium">
             {percentage >= 100 ? '100% Completed' : `${percentage}% Completed`}
           </span>
         </div>
       )}
-      <div className={`w-full bg-gray-200/80 rounded-full overflow-hidden ${heightClass}`}>
+      <div className={`w-full bg-gray-200/80 dark:bg-slate-700 rounded-full overflow-hidden ${heightClass}`}>
         <div 
           className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
           style={{ width: `${percentage}%` }}

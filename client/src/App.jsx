@@ -31,6 +31,7 @@ import Profile from './pages/Shared/Profile';
 import Settings from './pages/Shared/Settings';
 import { AuthProvider } from './contexts/AuthContext';
 import { DialogProvider } from './contexts/DialogContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ScrollToTop from './components/layout/ScrollToTop';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -38,9 +39,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <DialogProvider>
-          <Router>
+      <ThemeProvider>
+        <AuthProvider>
+          <DialogProvider>
+            <Router>
           <ScrollToTop />
           <Routes>
           {/* Public Routes with Standard Layout */}
@@ -121,6 +123,7 @@ function App() {
         </Router>
         </DialogProvider>
       </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

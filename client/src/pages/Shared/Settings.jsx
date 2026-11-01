@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
-import { Camera, User, Lock, Save, Loader2, CheckCircle2 } from 'lucide-react';
+import { Camera, User, Lock, Save, Loader2, CheckCircle2, Sun, Moon, Palette } from 'lucide-react';
+import ThemeToggle from '../../components/ThemeToggle';
 
 const Settings = () => {
   const { profile, user } = useAuth();
@@ -137,6 +138,17 @@ const Settings = () => {
             >
               <Lock size={18} className={activeTab === 'security' ? 'text-primary' : 'text-gray-400'} />
               Security
+            </button>
+            <button
+              onClick={() => setActiveTab('appearance')}
+              className={`flex items-center justify-center md:justify-start gap-2.5 px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-1 md:flex-none ${
+                activeTab === 'appearance'
+                  ? 'bg-primary/10 text-primary font-semibold'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Palette size={18} className={activeTab === 'appearance' ? 'text-primary' : 'text-gray-400'} />
+              Appearance & Theme
             </button>
           </div>
         </div>
@@ -276,6 +288,36 @@ const Settings = () => {
                     {isSavingPassword ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} className="text-gray-400" />}
                     Send Password Reset Link
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'appearance' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">Appearance & Theme</h2>
+                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Customize how MaalHub looks on your device.</p>
+              </div>
+
+              <div className="p-4 sm:p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">
+                    Interface Theme
+                  </label>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Choose between Light Mode, Dark Mode, or sync automatically with your system preference.
+                  </p>
+                  <ThemeToggle variant="segmented" />
+                </div>
+
+                <div className="p-4 rounded-xl border border-gray-100 bg-gray-50/60 dark:bg-slate-800/40 text-xs text-gray-600 space-y-2">
+                  <p className="font-semibold text-gray-900">
+                    💡 Quick Tip:
+                  </p>
+                  <p>
+                    You can also toggle between Light and Dark mode anytime using the sun/moon icon located directly in the top navigation bar.
+                  </p>
                 </div>
               </div>
             </div>

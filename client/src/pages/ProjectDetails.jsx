@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
-  Briefcase, 
   MapPin, 
-  Target, 
   ChevronLeft, 
   Loader2, 
   DollarSign, 
@@ -336,6 +334,52 @@ const ProjectDetails = () => {
 
   const selectedPhase = phases.find(p => p.id === selectedPhaseId);
 
+  const renderFundingCard = () => (
+    <div className="w-full bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-slate-800 flex-shrink-0">
+      <p className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-1">Total Funding Goal</p>
+      <h2 className="text-4xl font-black text-gray-900 dark:text-white mb-6 flex items-center">
+        <DollarSign className="w-8 h-8 text-green-500 dark:text-emerald-400 mr-1" />
+        {project.funding_goal?.toLocaleString() || '0'}
+      </h2>
+      
+      {isInvestor ? (
+        <button 
+          onClick={() => openInvestModalForPhase('', null)}
+          className="w-full bg-primary hover:bg-secondary text-white py-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 mb-6"
+        >
+          <Send className="w-5 h-5" />
+          Request Investment
+        </button>
+      ) : !user ? (
+        <Link to="/login" className="w-full block text-center bg-gray-900 hover:bg-gray-800 text-white py-3.5 rounded-xl font-bold transition-all shadow-md mb-6">
+          Log in to Invest
+        </Link>
+      ) : (
+        <div className="w-full text-center bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-300 py-3.5 rounded-xl font-medium border border-gray-100 dark:border-slate-700 mb-6">
+          {isOwner ? 'You are the Owner' : 'Viewing as Entrepreneur'}
+        </div>
+      )}
+
+      {/* Project Progress Bar */}
+      <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
+        <ProjectProgressBar progress={project.progress_percentage || 0} size="md" />
+        {isOwner && (
+          <button
+            type="button"
+            onClick={() => {
+              setNewProgress(project.progress_percentage || 0);
+              setIsProgressModalOpen(true);
+            }}
+            className="mt-3 text-xs font-semibold text-primary dark:text-primary-light hover:underline flex items-center justify-center gap-1.5 w-full py-2 bg-primary/5 hover:bg-primary/10 dark:bg-primary/20 dark:hover:bg-primary/30 rounded-lg transition-colors"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            Update Progress Percentage
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-[#FAF9F6] min-h-screen pb-20">
       {/* Top Navigation Banner */}
@@ -362,93 +406,195 @@ const ProjectDetails = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        
-        {/* Header Section */}
-        <div className="flex flex-col lg:flex-row justify-between items-start gap-8 mb-12">
-          <div className="flex-1">
-            <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-semibold rounded-full mb-4">
-              {project.industry || 'Various'}
-            </span>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
-              {project.project_name}
-            </h1>
-            <p className="text-xl text-gray-600 font-medium mb-6">
-              {project.business_name}
-            </p>
-            
-            <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500">
-              <div className="flex items-center">
-                <MapPin className="w-5 h-5 mr-2 text-gray-400" />
-                {project.location || 'Location unverified'}
-              </div>
-              <div className="flex items-center">
-                <Target className="w-5 h-5 mr-2 text-gray-400" />
-                Stage: <span className="font-semibold text-gray-900 ml-1">{project.startup_stage || 'Idea'}</span>
-              </div>
-              <div className="flex items-center">
-                <Briefcase className="w-5 h-5 mr-2 text-gray-400" />
-                Added on: {new Date(project.created_at).toLocaleDateString()}
-              </div>
-              {phases.length > 0 && (
-                <div className="flex items-center text-primary font-medium">
-                  <Layers className="w-5 h-5 mr-2 text-primary" />
-                  {phases.length} Funding {phases.length === 1 ? 'Phase' : 'Phases'}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Funding Card */}
-          <div className="w-full lg:w-84 bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex-shrink-0">
-            <p className="text-sm font-medium text-gray-500 mb-1">Total Funding Goal</p>
-            <h2 className="text-4xl font-black text-gray-900 mb-6 flex items-center">
-              <DollarSign className="w-8 h-8 text-green-500 mr-1" />
-              {project.funding_goal?.toLocaleString() || '0'}
-            </h2>
-            
-            {isInvestor ? (
-              <button 
-                onClick={() => openInvestModalForPhase('', null)}
-                className="w-full bg-primary hover:bg-secondary text-white py-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 mb-6"
-              >
-                <Send className="w-5 h-5" />
-                Request Investment
-              </button>
-            ) : !user ? (
-              <Link to="/login" className="w-full block text-center bg-gray-900 hover:bg-gray-800 text-white py-3.5 rounded-xl font-bold transition-all shadow-md mb-6">
-                Log in to Invest
-              </Link>
-            ) : (
-              <div className="w-full text-center bg-gray-50 text-gray-500 py-3.5 rounded-xl font-medium border border-gray-100 mb-6">
-                {isOwner ? 'You are the Owner' : 'Viewing as Entrepreneur'}
-              </div>
-            )}
-
-            {/* Project Progress Bar */}
-            <div className="pt-4 border-t border-gray-100">
-              <ProjectProgressBar progress={project.progress_percentage || 0} size="md" />
-              {isOwner && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNewProgress(project.progress_percentage || 0);
-                    setIsProgressModalOpen(true);
-                  }}
-                  className="mt-3 text-xs font-semibold text-primary hover:underline flex items-center justify-center gap-1.5 w-full py-2 bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  Update Progress Percentage
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           
           {/* Main Content Area */}
-          <div className="lg:col-span-2 space-y-10">
+          <div className="lg:col-span-2 space-y-8">
+            {/* Header / Project Title Area */}
+            <div>
+              <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-semibold rounded-full mb-3">
+                {project.industry || 'Various'}
+              </span>
+              <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3 tracking-tight">
+                {project.project_name}
+              </h1>
+              <p className="text-lg md:text-xl text-gray-600 font-medium">
+                {project.business_name}
+              </p>
+            </div>
+
+            {/* Mobile Funding Card (only visible on mobile/tablet) */}
+            <div className="block lg:hidden">
+              {renderFundingCard()}
+            </div>
+
+            {/* Project Overview */}
+            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-4">Project Overview</h3>
+              <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line font-medium">
+                {project.project_description || 'No overview provided.'}
+              </p>
+            </section>
+
+            {/* Business Details */}
+            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-4">Business Description</h3>
+              <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                {project.business_description || 'No additional business details provided.'}
+              </p>
+            </section>
+
+            {/* Problem & Solution */}
+            {(project.problem || project.solution) && (
+              <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 grid md:grid-cols-2 gap-8">
+                {project.problem && (
+                  <div>
+                    <h3 className="text-xl font-bold text-red-600 mb-4 flex items-center">
+                      <span className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3 text-red-600">?</span>
+                      The Problem
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">{project.problem}</p>
+                  </div>
+                )}
+                {project.solution && (
+                  <div>
+                    <h3 className="text-xl font-bold text-green-600 mb-4 flex items-center">
+                      <span className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3 text-green-600">!</span>
+                      Our Solution
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">{project.solution}</p>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* PROGRESS REPORTS & ENTREPRENEUR UPDATES SECTION */}
+            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 border-b pb-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <FileText className="w-6 h-6 text-primary" />
+                    Progress Reports & Updates
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Official progress and updates posted by the entrepreneur.
+                  </p>
+                </div>
+                {isOwner && (
+                  <button
+                    onClick={() => {
+                      setReportError('');
+                      setReportForm(prev => ({
+                        ...prev,
+                        progress_percentage: project?.progress_percentage ?? ''
+                      }));
+                      setIsReportModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    Post Progress Report
+                  </button>
+                )}
+              </div>
+
+              {reports.length === 0 ? (
+                <div className="p-8 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                  <FileText className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 text-sm font-medium">No progress reports published yet.</p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    {isOwner 
+                      ? 'Share progress, phase completions, and updates with your investors.' 
+                      : 'The entrepreneur will share periodic progress reports and key achievements here.'}
+                  </p>
+                  {isOwner && (
+                    <button
+                      onClick={() => setIsReportModalOpen(true)}
+                      className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline"
+                    >
+                      <PlusCircle className="w-4 h-4" /> Post your first report
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reports.map((rep) => (
+                    <div key={rep.id} className="p-5 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-all shadow-xs">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                            rep.report_type === 'Achievements' ? 'bg-amber-100 text-amber-800' :
+                            rep.report_type === 'Financial' ? 'bg-emerald-100 text-emerald-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {rep.report_type === 'Achievements' ? 'Key Achievements' : (rep.report_type || 'Progress')}
+                          </span>
+                          {rep.phase && (
+                            <span className="text-[11px] font-semibold bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full">
+                              Phase {rep.phase.phase_number}: {rep.phase.title}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(rep.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
+
+                        {isOwner && (
+                          <button
+                            onClick={() => handleDeleteReport(rep.id)}
+                            className="text-gray-400 hover:text-red-500 p-1 rounded transition-colors"
+                            title="Delete report"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+
+                      <h4 className="text-lg font-bold text-gray-900 mb-2">{rep.title}</h4>
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-3">{rep.summary}</p>
+
+                      {rep.key_achievements && (
+                        <div className="mt-3 p-3 bg-green-50/70 border border-green-200 rounded-lg text-xs text-green-900">
+                          <strong className="block font-bold mb-1 flex items-center gap-1.5 text-green-800">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Key Achievements:
+                          </strong>
+                          <span className="whitespace-pre-line">{rep.key_achievements}</span>
+                        </div>
+                      )}
+
+                      {rep.next_steps && (
+                        <div className="mt-2 p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-900">
+                          <strong className="block font-bold mb-1 flex items-center gap-1.5 text-blue-800">
+                            <ArrowRight className="w-3.5 h-3.5 text-blue-600" /> Next Planned Steps:
+                          </strong>
+                          <span className="whitespace-pre-line">{rep.next_steps}</span>
+                        </div>
+                      )}
+
+                      {rep.attachment_url && (
+                        <div className="mt-3 p-3 bg-purple-50/70 border border-purple-200 rounded-lg flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileArchive className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                            <span className="text-xs font-bold text-gray-800">Attached Deliverables Evidence Archive</span>
+                          </div>
+                          <a
+                            href={rep.attachment_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="inline-flex items-center gap-1.5 text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 px-3 py-1.5 rounded-lg shadow-2xs transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" /> Download (.zip)
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
 
             {/* INVESTMENT PHASES & ROADMAP SECTION */}
             <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
@@ -655,210 +801,48 @@ const ProjectDetails = () => {
               )}
             </section>
 
-            {/* PROGRESS REPORTS & ENTREPRENEUR UPDATES SECTION */}
-            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 border-b pb-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <FileText className="w-6 h-6 text-primary" />
-                    Progress Reports & Updates
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Official progress and updates posted by the entrepreneur.
-                  </p>
-                </div>
-                {isOwner && (
-                  <button
-                    onClick={() => {
-                      setReportError('');
-                      setReportForm(prev => ({
-                        ...prev,
-                        progress_percentage: project?.progress_percentage ?? ''
-                      }));
-                      setIsReportModalOpen(true);
-                    }}
-                    className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition"
-                  >
-                    <PlusCircle className="w-4 h-4" />
-                    Post Progress Report
-                  </button>
-                )}
-              </div>
-
-              {reports.length === 0 ? (
-                <div className="p-8 bg-gray-50 rounded-xl border border-gray-200 text-center">
-                  <FileText className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 text-sm font-medium">No progress reports published yet.</p>
-                  <p className="text-gray-400 text-xs mt-1">
-                    {isOwner 
-                      ? 'Share progress, phase completions, and updates with your investors.' 
-                      : 'The entrepreneur will share periodic progress reports and key achievements here.'}
-                  </p>
-                  {isOwner && (
-                    <button
-                      onClick={() => setIsReportModalOpen(true)}
-                      className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline"
-                    >
-                      <PlusCircle className="w-4 h-4" /> Post your first report
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {reports.map((rep) => (
-                    <div key={rep.id} className="p-5 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-all shadow-xs">
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-                            rep.report_type === 'Achievements' ? 'bg-amber-100 text-amber-800' :
-                            rep.report_type === 'Financial' ? 'bg-emerald-100 text-emerald-800' :
-                            'bg-blue-100 text-blue-800'
-                          }`}>
-                            {rep.report_type === 'Achievements' ? 'Key Achievements' : (rep.report_type || 'Progress')}
-                          </span>
-                          {rep.phase && (
-                            <span className="text-[11px] font-semibold bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full">
-                              Phase {rep.phase.phase_number}: {rep.phase.title}
-                            </span>
-                          )}
-                          <span className="text-xs text-gray-400 flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {new Date(rep.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </span>
-                        </div>
-
-                        {isOwner && (
-                          <button
-                            onClick={() => handleDeleteReport(rep.id)}
-                            className="text-gray-400 hover:text-red-500 p-1 rounded transition-colors"
-                            title="Delete report"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-
-                      <h4 className="text-lg font-bold text-gray-900 mb-2">{rep.title}</h4>
-                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-3">{rep.summary}</p>
-
-                      {rep.key_achievements && (
-                        <div className="mt-3 p-3 bg-green-50/70 border border-green-200 rounded-lg text-xs text-green-900">
-                          <strong className="block font-bold mb-1 flex items-center gap-1.5 text-green-800">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Key Achievements:
-                          </strong>
-                          <span className="whitespace-pre-line">{rep.key_achievements}</span>
-                        </div>
-                      )}
-
-                      {rep.next_steps && (
-                        <div className="mt-2 p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-900">
-                          <strong className="block font-bold mb-1 flex items-center gap-1.5 text-blue-800">
-                            <ArrowRight className="w-3.5 h-3.5 text-blue-600" /> Next Planned Steps:
-                          </strong>
-                          <span className="whitespace-pre-line">{rep.next_steps}</span>
-                        </div>
-                      )}
-
-                      {rep.attachment_url && (
-                        <div className="mt-3 p-3 bg-purple-50/70 border border-purple-200 rounded-lg flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <FileArchive className="w-4 h-4 text-purple-600 flex-shrink-0" />
-                            <span className="text-xs font-bold text-gray-800">Attached Deliverables Evidence Archive</span>
-                          </div>
-                          <a
-                            href={rep.attachment_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download
-                            className="inline-flex items-center gap-1.5 text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 px-3 py-1.5 rounded-lg shadow-2xs transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" /> Download (.zip)
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-            
-            {/* Project Overview */}
-            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-4">Project Overview</h3>
-              <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line font-medium">
-                {project.project_description || 'No overview provided.'}
-              </p>
-            </section>
-
-            {/* Business Details */}
-            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-4">Business Description</h3>
-              <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                {project.business_description || 'No additional business details provided.'}
-              </p>
-            </section>
-
-            {/* Problem & Solution */}
-            {(project.problem || project.solution) && (
-              <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 grid md:grid-cols-2 gap-8">
-                {project.problem && (
-                  <div>
-                    <h3 className="text-xl font-bold text-red-600 mb-4 flex items-center">
-                      <span className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3 text-red-600">?</span>
-                      The Problem
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">{project.problem}</p>
-                  </div>
-                )}
-                {project.solution && (
-                  <div>
-                    <h3 className="text-xl font-bold text-green-600 mb-4 flex items-center">
-                      <span className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3 text-green-600">!</span>
-                      Our Solution
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">{project.solution}</p>
-                  </div>
-                )}
-              </section>
-            )}
-
           </div>
 
-          {/* Sidebar Area */}
-          <div className="space-y-8">
+          {/* Sidebar Area - Sticky on desktop */}
+          <div className="lg:sticky lg:top-24 self-start space-y-6">
+            {/* Desktop Funding Card (only visible on lg+) */}
+            <div className="hidden lg:block">
+              {renderFundingCard()}
+            </div>
+
             {/* Entrepreneur Profile */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900 mb-6">About the Entrepreneur</h3>
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">About the Entrepreneur</h3>
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-100">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700">
                   <img 
                     src={project.entrepreneur?.profile_photo_url || `https://ui-avatars.com/api/?name=${project.entrepreneur?.full_name || 'User'}&background=8A5F41&color=fff`} 
                     alt="Entrepreneur Avatar" 
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover" 
                   />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900">{project.entrepreneur?.full_name || 'Anonymous User'}</h4>
-                  <p className="text-sm text-gray-500 flex items-center mt-1">
+                  <h4 className="font-bold text-gray-900 dark:text-white">{project.entrepreneur?.full_name || 'Anonymous User'}</h4>
+                  <p className="text-sm text-gray-500 dark:text-slate-400 flex items-center mt-1">
                     <MapPin className="w-3.5 h-3.5 mr-1" />
                     {project.entrepreneur?.city || ''}, {project.entrepreneur?.country || ''}
                   </p>
                 </div>
               </div>
               {project.entrepreneur?.about && (
-                <p className="text-sm text-gray-600 mt-4 pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-600 dark:text-slate-300 mt-4 pt-4 border-t border-gray-100 dark:border-slate-800">
                   {project.entrepreneur.about}
                 </p>
               )}
             </div>
 
             {/* Quick Investment Overview */}
-            <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-6 rounded-2xl border border-primary/20">
-              <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
-                <ShieldCheck className="w-4 h-4 text-primary" />
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/15 dark:to-primary/25 p-6 rounded-2xl border border-primary/20 dark:border-primary/30">
+              <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
+                <ShieldCheck className="w-4 h-4 text-primary dark:text-primary-light" />
                 MaalHub Investment Protection
               </h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
+              <p className="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
                 By investing in specific phase tranches, your funds align with verified startup progress and key deliverables.
               </p>
             </div>
@@ -869,19 +853,19 @@ const ProjectDetails = () => {
 
       {/* Investment Proposal Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50/80 dark:bg-slate-800/80">
               <div className="flex items-center gap-2">
-                <Send className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold text-gray-900">Request Investment</h3>
+                <Send className="w-5 h-5 text-primary dark:text-primary-light" />
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Request Investment</h3>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 font-bold text-xl">&times;</button>
             </div>
             
             <div className="p-6">
               {submitStatus.msg && (
-                <div className={`mb-4 p-3 rounded-xl text-sm font-medium ${submitStatus.type === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
+                <div className={`mb-4 p-3 rounded-xl text-sm font-medium ${submitStatus.type === 'error' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-emerald-950/40 text-green-700 dark:text-emerald-300 border border-green-200 dark:border-emerald-800'}`}>
                   {submitStatus.msg}
                 </div>
               )}
@@ -889,7 +873,7 @@ const ProjectDetails = () => {
               <form onSubmit={handleInvestmentSubmit} className="space-y-5">
                 {/* Investment Target (Phase selection) */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                     Investment Target (Tranche)
                   </label>
                   <select
@@ -903,7 +887,7 @@ const ProjectDetails = () => {
                         if (rem > 0) setProposedAmount(rem.toString());
                       }
                     }}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm text-gray-800 bg-white"
+                    className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm text-gray-800 dark:text-slate-100 bg-white dark:bg-slate-800"
                   >
                     <option value="">Whole Project (Overall Goal: ${project.funding_goal?.toLocaleString()})</option>
                     {phases.map((p) => {
@@ -917,9 +901,9 @@ const ProjectDetails = () => {
                   </select>
                   
                   {selectedPhase && (
-                    <div className="mt-2 p-3 bg-blue-50/70 rounded-lg border border-blue-100 text-xs text-blue-900">
+                    <div className="mt-2 p-3 bg-blue-50/70 dark:bg-blue-950/50 rounded-lg border border-blue-100 dark:border-blue-900/60 text-xs text-blue-900 dark:text-blue-200">
                       <strong>Phase {selectedPhase.phase_number}:</strong> {selectedPhase.title}
-                      <div className="mt-1 text-blue-700">
+                      <div className="mt-1 text-blue-700 dark:text-blue-300">
                         Target: ${selectedPhase.target_amount?.toLocaleString()} • 
                         Raised: ${Number(selectedPhase.current_amount || 0).toLocaleString()} • 
                         Remaining: ${Math.max(0, Number(selectedPhase.target_amount) - Number(selectedPhase.current_amount || 0)).toLocaleString()}
@@ -929,18 +913,18 @@ const ProjectDetails = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                     Proposed Investment Amount (USD) *
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 dark:text-slate-500">
                       <DollarSign className="h-4 w-4" />
                     </div>
                     <input 
                       type="number"
                       min="1"
                       required
-                      className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm"
+                      className="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                       placeholder="e.g. 10000"
                       value={proposedAmount}
                       onChange={(e) => setProposedAmount(e.target.value)}
@@ -949,13 +933,13 @@ const ProjectDetails = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                     Proposal Message *
                   </label>
                   <textarea 
                     rows={4}
                     required
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500"
                     placeholder="Introduce yourself, propose your investment terms, and express interest in this phase..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -966,7 +950,7 @@ const ProjectDetails = () => {
                   <button 
                     type="button" 
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors"
+                    className="px-4 py-2.5 text-sm text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl font-medium transition-colors"
                   >
                     Cancel
                   </button>
