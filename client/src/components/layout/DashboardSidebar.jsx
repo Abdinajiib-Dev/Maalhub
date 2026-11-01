@@ -69,11 +69,11 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
   }, [user]);
 
   const navLinks = isAdmin ? [
+    { name: 'System Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
     { name: 'User Management', path: `${basePath}/users`, icon: Users },
     { name: 'Project Moderation', path: `${basePath}/projects`, icon: Kanban },
     { name: 'Investment Requests', path: `${basePath}/requests`, icon: Briefcase },
     { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
-    { name: 'System Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
     { name: 'Profile', path: `${basePath}/profile`, icon: User },
     { name: 'Settings', path: `${basePath}/settings`, icon: Settings },
   ] : isEntrepreneur ? [

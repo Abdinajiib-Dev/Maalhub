@@ -97,10 +97,10 @@ const Navbar = () => {
 
   const navLinks = isDashboard ? (
     isAdmin ? [
+      { name: 'System Overview', path: `${basePath}/dashboard`, icon: BarChart3 },
       { name: 'User Management', path: `${basePath}/users`, icon: Users },
       { name: 'Project Moderation', path: `${basePath}/projects`, icon: Kanban },
       { name: 'Messages', path: `${basePath}/messages`, icon: MessageCircle },
-      { name: 'Dashboard', path: `${basePath}/dashboard`, icon: LayoutDashboard },
     ] : profile?.role === 'entrepreneur' ? [
       { name: 'My Ventures', path: `${basePath}/projects`, icon: Briefcase },
       { name: 'Create Project', path: `${basePath}/create-project`, icon: PlusCircle },
