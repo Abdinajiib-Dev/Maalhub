@@ -14,6 +14,10 @@ const Footer = () => {
               <span className="text-2xl font-bold tracking-tight text-white">
                 Maal<span className="text-white/80">Hub</span>
               </span>
+              <div className="h-6 w-px bg-white/25 mx-1" />
+              <div className="bg-white/95 px-2.5 py-1 rounded-md flex items-center shadow-sm">
+                <img src="/janic.png" alt="JANIC Logo" className="h-5 w-auto object-contain" />
+              </div>
             </Link>
             <p className="text-gray-100 text-sm max-w-md">
               Connecting promising businesses and innovative ideas with investors looking for their next opportunity.
