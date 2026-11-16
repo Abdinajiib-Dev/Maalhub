@@ -30,8 +30,10 @@ const Contact = () => {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json().catch(() => null);
+
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        throw new Error(data?.error || 'Failed to send message. Please try again later.');
       }
 
       setStatus('success');
@@ -40,7 +42,7 @@ const Contact = () => {
       console.error('Contact form error:', error);
       showAlert({
         title: 'Delivery Failed',
-        message: 'Failed to send message. Please try again later.',
+        message: error.message || 'Failed to send message. Please try again later.',
         variant: 'error'
       });
       setStatus('');

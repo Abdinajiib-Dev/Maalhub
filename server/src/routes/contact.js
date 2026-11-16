@@ -33,9 +33,10 @@ ${message}
       <p>${message.replace(/\n/g, '<br/>')}</p>
     `;
 
-    // Send email to the support/admin address (you can also use SMTP_FROM_EMAIL to send to yourself)
+    // Send email to the support/admin address
+    const recipient = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'maalhubsupport@gmail.com';
     await sendEmail({
-      to: process.env.SMTP_FROM_EMAIL, // Sending to yourself so you receive the contact message
+      to: recipient,
       subject: emailSubject,
       text: emailText,
       html: emailHtml,
@@ -44,7 +45,7 @@ ${message}
 
     res.status(200).json({ message: 'Your message has been sent successfully!' });
   } catch (error) {
-    console.error('Contact form error:', error);
+    console.error('Contact form error:', error?.message || error);
     res.status(500).json({ error: 'Failed to send message. Please try again later.' });
   }
 });
