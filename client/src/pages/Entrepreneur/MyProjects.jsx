@@ -13,13 +13,17 @@ import {
   Pause, 
   Sparkles,
   ExternalLink,
-  DollarSign
+  DollarSign,
+  Tag
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import ProjectProgressBar from '../../components/ProjectProgressBar';
 import { useDialog } from '../../contexts/DialogContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { PROJECT_CATEGORIES } from '../../constants/categories';
 
 const MyProjects = () => {
+  const { user, profile } = useAuth();
   const { confirm, showAlert, toast } = useDialog();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -252,68 +256,113 @@ const MyProjects = () => {
             const isUpdatingThisStatus = statusActionId === project.id;
             const progress = Number(project.progress_percentage || 0);
 
+            const catObj = PROJECT_CATEGORIES.find(c => c.name.toLowerCase() === (project.industry || '').trim().toLowerCase());
+            const IconComp = catObj ? catObj.icon : Tag;
+            const badgeStyle = catObj ? catObj.badgeBg : 'bg-primary/10 text-primary border-primary/20';
+            const projectImageUrl = project.project_image_url || catObj?.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
+
+            const entrepreneurName = project.entrepreneur?.full_name || profile?.full_name || user?.user_metadata?.full_name || 'Anonymous User';
+            const entrepreneurAvatar = project.entrepreneur?.profile_photo_url || profile?.profile_photo_url || user?.user_metadata?.profile_photo_url ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(entrepreneurName || project.business_name || 'User')}&background=8A5F41&color=fff`;
+
             return (
               <div 
                 key={project.id} 
-                className="bg-white rounded-2xl shadow-xs hover:shadow-md transition-all duration-200 border border-gray-100 overflow-hidden flex flex-col justify-between"
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-slate-800 overflow-hidden flex flex-col justify-between group"
               >
-                <div className="p-6">
-                  {/* Top Bar: Category & Status */}
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-gray-100 text-gray-700 border border-gray-200 truncate">
-                      {project.industry || 'Business'}
+                <div>
+                  {/* Project Type Image Banner (Matching Image 2) */}
+                  <div className="relative h-48 w-full overflow-hidden bg-gray-100 dark:bg-slate-800">
+                    <img 
+                      src={projectImageUrl} 
+                      alt={project.project_name || project.industry} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = catObj?.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                    
+                    {/* Category Badge (Top-Left) */}
+                    <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border shadow-sm backdrop-blur-md bg-white/90 text-primary border-primary/20 dark:bg-slate-900/90 dark:text-amber-200 dark:border-amber-800/40`}>
+                      <IconComp className="w-3.5 h-3.5" />
+                      {project.industry || 'General Business'}
                     </span>
 
-                    <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full border shrink-0 ${
+                    {/* Status Badge (Top-Right) */}
+                    <span className={`absolute top-3 right-3 px-2.5 py-1 text-xs font-bold rounded-full border shadow-sm backdrop-blur-md ${
                       isPublished 
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
-                        : 'bg-gray-100 text-gray-700 border-gray-200'
+                        ? 'bg-emerald-500/90 text-white border-emerald-400/50' 
+                        : 'bg-black/60 text-white border-white/20'
                     }`}>
                       {project.status || 'Draft'}
                     </span>
                   </div>
 
-                  {/* Project Titles */}
-                  <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1">
-                    {project.project_name}
-                  </h3>
-                  <p className="text-xs font-semibold text-gray-500 mb-4 truncate">
-                    {project.business_name || 'Startup Entity'}
-                  </p>
-                  
-                  <p className="text-gray-600 text-xs leading-relaxed mb-6 line-clamp-2">
-                    {project.project_description || 'No description provided.'}
-                  </p>
+                  <div className="p-5">
+                    {/* Project Title */}
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                      {project.project_name}
+                    </h3>
 
-                  {/* Metrics */}
-                  <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50/70 rounded-xl border border-gray-100 text-xs mb-4">
-                    <div>
-                      <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Funding Goal</span>
-                      <span className="font-extrabold text-gray-900">${Number(project.funding_goal || 0).toLocaleString()}</span>
+                    {/* User Profile Row: Avatar + Name + Business (Matching Image 2) */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <img 
+                        src={entrepreneurAvatar}
+                        alt={entrepreneurName} 
+                        className="w-6 h-6 rounded-full object-cover border border-gray-200 dark:border-slate-700 shrink-0"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(entrepreneurName || project.business_name || 'User')}&background=8A5F41&color=fff`;
+                        }}
+                      />
+                      <span className="text-xs font-semibold text-gray-800 dark:text-slate-200 truncate">
+                        {entrepreneurName}
+                      </span>
+                      {project.business_name && project.business_name.trim() !== entrepreneurName.trim() && (
+                        <span className="text-xs text-gray-400 dark:text-slate-400 truncate">
+                          • {project.business_name}
+                        </span>
+                      )}
                     </div>
-                    <div>
-                      <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Startup Stage</span>
-                      <span className="font-extrabold text-gray-900">{project.startup_stage || 'Idea'}</span>
-                    </div>
-                  </div>
+                    
+                    {/* Description */}
+                    <p className="text-gray-600 dark:text-slate-300 text-sm line-clamp-2 leading-relaxed mb-4">
+                      {project.project_description || 'No description provided.'}
+                    </p>
 
-                  {/* Development Progress Bar */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-[10px] uppercase font-bold text-gray-500">Milestone Progress</span>
-                      <span className="font-bold text-primary">{progress}%</span>
+                    {/* Metrics: Funding Goal & Startup Stage */}
+                    <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50/70 dark:bg-slate-800/60 rounded-xl border border-gray-100 dark:border-slate-700 text-xs mb-3">
+                      <div>
+                        <span className="block text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider">Funding Goal</span>
+                        <span className="font-extrabold text-gray-900 dark:text-white">${Number(project.funding_goal || 0).toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider">Startup Stage</span>
+                        <span className="font-extrabold text-gray-900 dark:text-white">{project.startup_stage || 'Idea'}</span>
+                      </div>
                     </div>
-                    <ProjectProgressBar progress={progress} size="sm" />
+
+                    {/* Milestone Progress Bar */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[10px] uppercase font-bold text-gray-500 dark:text-slate-400">Milestone Progress</span>
+                        <span className="font-bold text-primary dark:text-primary-light">{progress}%</span>
+                      </div>
+                      <ProjectProgressBar progress={progress} size="sm" />
+                    </div>
                   </div>
                 </div>
 
                 {/* Card Action Footer */}
-                <div className="bg-gray-50/80 border-t border-gray-100 p-3 px-4 flex flex-col gap-2.5">
+                <div className="bg-gray-50/80 dark:bg-slate-800/80 border-t border-gray-100 dark:border-slate-700/80 p-3 px-4 flex flex-col gap-2.5">
                   {/* Top action row */}
                   <div className="flex items-center justify-between gap-2">
                     <Link 
                       to={`/projects/${project.id}`} 
-                      className="text-xs font-bold text-primary hover:text-secondary transition-colors flex items-center gap-1"
+                      className="text-xs font-bold text-primary hover:text-secondary dark:text-primary-light transition-colors flex items-center gap-1"
                     >
                       <Layers className="w-3.5 h-3.5" />
                       Phases & Pitch
@@ -326,8 +375,8 @@ const MyProjects = () => {
                       onClick={() => handleToggleStatus(project, isPublished ? 'Paused' : 'Published')}
                       className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-60 border ${
                         isPublished
-                          ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200'
-                          : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                          ? 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                          : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                       }`}
                       title={isPublished ? "Pause listing" : "Publish listing to investors"}
                     >
@@ -348,10 +397,10 @@ const MyProjects = () => {
                   </div>
 
                   {/* Secondary management buttons */}
-                  <div className="flex items-center justify-end space-x-1.5 pt-2 border-t border-gray-100">
+                  <div className="flex items-center justify-end space-x-1.5 pt-2 border-t border-gray-200/60 dark:border-slate-700/60">
                     <button
                       onClick={() => openProgressModal(project)}
-                      className="text-xs font-semibold text-primary hover:text-secondary bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                      className="text-xs font-semibold text-primary hover:text-secondary dark:text-primary-light bg-primary/10 hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
                       title="Quickly update progress"
                     >
                       <TrendingUp className="w-3.5 h-3.5" />
@@ -359,7 +408,7 @@ const MyProjects = () => {
                     </button>
                     <Link
                       to={`/entrepreneur/edit-project/${project.id}`}
-                      className="text-xs font-semibold text-gray-700 hover:text-primary bg-white border border-gray-200 hover:bg-gray-50 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                      className="text-xs font-semibold text-gray-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1"
                       title="Edit project details"
                     >
                       <Edit className="w-3.5 h-3.5" />
@@ -367,7 +416,7 @@ const MyProjects = () => {
                     </Link>
                     <button 
                       onClick={() => handleDelete(project.id)} 
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" 
+                      className="p-1.5 text-gray-400 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition-colors cursor-pointer" 
                       title="Delete Project"
                     >
                       <Trash2 className="w-4 h-4" />

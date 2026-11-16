@@ -98,9 +98,9 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-[#FAF9F6]">
-      <div className="flex items-center justify-between p-4 md:hidden border-b border-gray-200">
-        <span className="font-bold text-gray-900 text-base">Dashboard Menu</span>
+    <div className="flex flex-col h-full bg-[#FAF9F6] dark:bg-[#0b1120] transition-colors">
+      <div className="flex items-center justify-between p-4 md:hidden border-b border-gray-200 dark:border-slate-800">
+        <span className="font-bold text-gray-900 dark:text-white text-base">Dashboard Menu</span>
         <button 
           onClick={onClose}
           className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
@@ -125,7 +125,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
                 className={`flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive 
                     ? 'bg-primary text-white shadow-sm' 
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-primary'
+                    : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800/80 hover:text-primary dark:hover:text-primary-light'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -154,12 +154,12 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
 
       {isEntrepreneur && (
         <div className="px-4 mb-4 mt-auto">
-          <div className="bg-white border border-gray-200 rounded-xl p-4 text-center shadow-sm">
-            <div className="w-10 h-10 bg-[#FAF9F6] border border-gray-100 rounded-lg shadow-sm flex items-center justify-center mx-auto mb-3">
-              <TrendingUp className="text-primary" size={20} />
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-4 text-center shadow-sm">
+            <div className="w-10 h-10 bg-[#FAF9F6] dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg shadow-sm flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="text-primary dark:text-primary-light" size={20} />
             </div>
-            <h4 className="font-bold text-gray-900 mb-1 text-sm">Ready to grow your idea?</h4>
-            <p className="text-[11px] text-gray-500 mb-4 leading-relaxed">
+            <h4 className="font-bold text-gray-900 dark:text-white mb-1 text-sm">Ready to grow your idea?</h4>
+            <p className="text-[11px] text-gray-500 dark:text-slate-400 mb-4 leading-relaxed">
               Share your project and connect with investors.
             </p>
             <Link 
@@ -178,7 +178,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-60 lg:w-64 bg-[#FAF9F6] border-r border-gray-100 flex-col h-[calc(100vh-5rem)] sticky top-20 flex-shrink-0">
+      <div className="hidden md:flex md:w-60 lg:w-64 bg-[#FAF9F6] dark:bg-[#0b1120] border-r border-gray-100 dark:border-slate-800 flex-col h-[calc(100vh-5rem)] sticky top-20 flex-shrink-0 transition-colors">
         {sidebarContent}
       </div>
 
@@ -191,7 +191,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }) => {
             onClick={onClose}
           />
           {/* Slide-over panel */}
-          <div className="relative flex-1 max-w-xs w-full bg-[#FAF9F6] h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
+          <div className="relative flex-1 max-w-xs w-full bg-[#FAF9F6] dark:bg-[#0b1120] h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
             {sidebarContent}
           </div>
         </div>

@@ -13,7 +13,7 @@ router.get('/', requireAuth, async (req, res) => {
         id,
         project_id,
         created_at,
-        project:projects(*)
+        project:projects(*, entrepreneur:profiles!projects_entrepreneur_id_fkey(full_name, city, country, profile_photo_url))
       `)
       .eq('investor_id', req.user.id)
       .order('created_at', { ascending: false });

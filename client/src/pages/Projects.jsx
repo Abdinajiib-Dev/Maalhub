@@ -248,9 +248,9 @@ const Projects = () => {
               const projectImageUrl = project.project_image_url || catObj?.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
 
               return (
-                <div key={project.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all border border-gray-100 overflow-hidden flex flex-col group">
+                <div key={project.id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl transition-all border border-gray-100 dark:border-slate-800 overflow-hidden flex flex-col group">
                   {/* Project Type Image */}
-                  <div className="relative h-48 w-full overflow-hidden bg-gray-100">
+                  <div className="relative h-48 w-full overflow-hidden bg-gray-100 dark:bg-slate-800">
                     <img 
                       src={projectImageUrl} 
                       alt={project.project_name || project.industry} 
@@ -271,7 +271,7 @@ const Projects = () => {
 
                   <div className="p-5 flex-grow flex flex-col justify-between">
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-1 mb-2">
                         {project.project_name}
                       </h3>
 
@@ -283,38 +283,38 @@ const Projects = () => {
                             `https://ui-avatars.com/api/?name=${encodeURIComponent(project.entrepreneur?.full_name || project.business_name || 'User')}&background=8A5F41&color=fff`
                           } 
                           alt={project.entrepreneur?.full_name || 'Entrepreneur'} 
-                          className="w-6 h-6 rounded-full object-cover border border-gray-200 shrink-0"
+                          className="w-6 h-6 rounded-full object-cover border border-gray-200 dark:border-slate-700 shrink-0"
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(project.entrepreneur?.full_name || project.business_name || 'User')}&background=8A5F41&color=fff`;
                           }}
                         />
-                        <span className="text-xs font-semibold text-gray-800 truncate">
+                        <span className="text-xs font-semibold text-gray-800 dark:text-slate-200 truncate">
                           {project.entrepreneur?.full_name || 'Anonymous User'}
                         </span>
                         {project.business_name && project.business_name.trim() !== (project.entrepreneur?.full_name || '').trim() && (
-                          <span className="text-xs text-gray-400 truncate">
+                          <span className="text-xs text-gray-400 dark:text-slate-400 truncate">
                             • {project.business_name}
                           </span>
                         )}
                       </div>
                       
-                      <p className="text-gray-600 text-sm line-clamp-1 leading-relaxed">
+                      <p className="text-gray-600 dark:text-slate-300 text-sm line-clamp-1 leading-relaxed">
                         {project.project_description || 'No description provided for this project.'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                  <div className="bg-gray-50 dark:bg-slate-800/80 px-6 py-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Funding Goal</p>
-                      <p className="text-lg font-bold text-gray-900">
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Funding Goal</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">
                         ${project.funding_goal?.toLocaleString() || '0'}
                       </p>
                     </div>
                     <Link 
                       to={`/projects/${project.id}`} 
-                      className="flex items-center text-primary font-medium text-sm hover:underline"
+                      className="flex items-center text-primary dark:text-amber-400 font-semibold text-sm hover:underline"
                     >
                       View Details
                       <ArrowRight className="h-4 w-4 ml-1" />

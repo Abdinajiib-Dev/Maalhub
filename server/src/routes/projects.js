@@ -143,7 +143,10 @@ router.get('/my-projects', requireAuth, async (req, res, next) => {
 
     const { data, error, count } = await supabase
       .from('projects')
-      .select('*', { count: 'exact' })
+      .select(`
+        *,
+        entrepreneur:profiles!projects_entrepreneur_id_fkey(full_name, city, country, profile_photo_url)
+      `, { count: 'exact' })
       .eq('entrepreneur_id', req.user.id)
       .order('created_at', { ascending: false })
       .range(from, to);
