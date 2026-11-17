@@ -195,6 +195,35 @@ export const api = {
     return publicUrl;
   },
 
+  uploadProjectImage: async (file) => {
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `${Date.now()}-${cleanFileName}`;
+
+    let bucketName = 'project-images';
+    let { error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+    if (uploadError && (uploadError.message?.includes('not found') || uploadError.statusCode === '404')) {
+      bucketName = 'profile-photos';
+      const retry = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+      uploadError = retry.error;
+    }
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  },
+
   uploadPhaseEvidence: async (projectId, file) => {
     const fileExt = file.name.split('.').pop();
     const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
